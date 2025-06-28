@@ -1,10 +1,13 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { Sparkles, Zap, Copy, RefreshCw, ArrowLeft } from 'lucide-react';
 import { useAuth } from './contexts/AuthContext';
-import { promptService, PromptWithVersions, EnhancePromptRequest, LazyTweak } from './lib/promptService';
+import { promptService, PromptWithVersions, EnhancePromptRequest, LazyTweak, ConversationEntry, IterativeQuestion } from './lib/promptService';
 import ProfileDropdown from './components/ProfileDropdown';
 import PromptHistory from './components/PromptHistory';
 import NotificationToast from './components/NotificationToast';
+import QuestionCard from './components/QuestionCard';
+import CompletionConfirmation from './components/CompletionConfirmation';
+import { AnimatePresence } from 'framer-motion';
 
 // Move constants outside component to prevent recreation
 const lazinessLevels = [
@@ -21,6 +24,13 @@ const lazinessLevels = [
     icon: '🛋️',
     description: "I can answer like 3 easy questions, maybe",
     slothSays: "Okay, I'll ask you 5 tiny questions. Super easy! 🍃"
+  },
+  {
+    id: 'iterative-lazy',
+    name: 'Progressively Lazy',
+    icon: '🚶‍♂️',
+    description: "One simple question at a time, I'll stop when ready",
+    slothSays: "Smart choice! I'll ask questions one by one until I have enough info 🎯"
   }
 ];
 
@@ -644,6 +654,130 @@ const ResultsView = ({
   );
 };
 
+// Iterative Question View component
+const IterativeQuestionView = ({
+  userPrompt,
+  currentQuestion,
+  isComplete,
+  completionMessage,
+  conversationHistory,
+  isGenerating,
+  onAnswer,
+  onComplete,
+  setCurrentView
+}: {
+  userPrompt: string;
+  currentQuestion: IterativeQuestion | null;
+  isComplete: boolean;
+  completionMessage: string;
+  conversationHistory: ConversationEntry[];
+  isGenerating: boolean;
+  onAnswer: (answer: string, customText?: string) => void;
+  onComplete: () => void;
+  setCurrentView: (view: string) => void;
+}) => {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-green-100 via-blue-50 to-purple-100 p-4 pt-20">
+      <div className="max-w-4xl mx-auto">
+        <button 
+          onClick={() => setCurrentView('home')}
+          className="mb-6 p-3 bg-white rounded-full shadow-md hover:shadow-lg transition-all"
+        >
+          <ArrowLeft className="w-5 h-5 text-gray-600" />
+        </button>
+
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold text-gray-800 mb-2">🦥 One Question at a Time</h2>
+          <p className="text-xl text-gray-600">Let me understand what you need...</p>
+        </div>
+
+        {/* Progress indicator */}
+        <div className="mb-8">
+          <div className="flex justify-center items-center space-x-2">
+            {conversationHistory.map((_, index) => (
+              <div
+                key={index}
+                className="w-3 h-3 rounded-full bg-green-500"
+              />
+            ))}
+            {!isComplete && currentQuestion && (
+              <div className="w-3 h-3 rounded-full bg-gray-300 animate-pulse" />
+            )}
+          </div>
+          <p className="text-center text-gray-600 mt-2">
+            {conversationHistory.length} question{conversationHistory.length !== 1 ? 's' : ''} answered
+          </p>
+        </div>
+
+        {/* Question or Completion */}
+        <AnimatePresence mode="wait">
+          {isComplete ? (
+            <CompletionConfirmation
+              key="completion"
+              message={completionMessage}
+              onConfirm={onComplete}
+              isLoading={isGenerating}
+            />
+          ) : (
+            currentQuestion && (
+              <QuestionCard
+                key={currentQuestion.question}
+                question={currentQuestion.question}
+                options={currentQuestion.options}
+                allowCustom={currentQuestion.allow_custom}
+                onAnswer={onAnswer}
+                isLoading={isGenerating}
+              />
+            )
+          )}
+        </AnimatePresence>
+
+        {/* Conversation History */}
+        {conversationHistory.length > 0 && (
+          <div className="mt-8 max-w-2xl mx-auto">
+            <h3 className="text-lg font-semibold text-gray-700 mb-4">Our conversation so far:</h3>
+            <div className="space-y-3">
+              {conversationHistory.map((entry, index) => (
+                <div key={index} className="bg-white/60 backdrop-blur-sm rounded-xl p-4 border border-gray-200">
+                  <p className="text-sm font-medium text-gray-700 mb-1">Q: {entry.question}</p>
+                  <p className="text-sm text-gray-600">
+                    A: {entry.answer}
+                    {entry.custom_text && ` (${entry.custom_text})`}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Loading Overlay */}
+      {isGenerating && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-3xl p-8 max-w-md w-full mx-4 text-center shadow-2xl">
+            <h3 className="text-2xl font-bold text-gray-800 mb-2">Sloth is thinking... 💭</h3>
+            <p className="text-gray-600 mb-4">Analyzing your answer...</p>
+            
+            <div className="flex justify-center space-x-2">
+              {['💤', '😴', '🦥'].map((emoji, i) => (
+                <div
+                  key={i}
+                  className={`text-2xl transition-all duration-500 ${
+                    Math.floor(Date.now() / 500) % 3 === i ? 'animate-bounce' : 'opacity-50'
+                  }`}
+                >
+                  {emoji}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const SlothPromptBoost = () => {
   const { user } = useAuth();
   const [currentView, setCurrentView] = useState('home');
@@ -667,6 +801,12 @@ const SlothPromptBoost = () => {
   }>({ message: '', type: 'info', isVisible: false });
   const [generatedQuestions, setGeneratedQuestions] = useState<any[]>([]);
   const [availableTweaks, setAvailableTweaks] = useState<LazyTweak[]>([]);
+  
+  // Iterative mode state
+  const [conversationHistory, setConversationHistory] = useState<ConversationEntry[]>([]);
+  const [currentIterativeQuestion, setCurrentIterativeQuestion] = useState<IterativeQuestion | null>(null);
+  const [isIterativeComplete, setIsIterativeComplete] = useState(false);
+  const [iterativeCompletionMessage, setIterativeCompletionMessage] = useState('');
   
   const promptTextareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -840,6 +980,40 @@ const SlothPromptBoost = () => {
         setIsGenerating(false);
       }
       return;
+    } else if (selectedLaziness === 'iterative-lazy') {
+      // Start iterative questioning
+      setIsGenerating(true);
+      setSlothMessage("Let me ask you one simple question at a time... 🎯");
+      setConversationHistory([]); // Reset conversation
+      setIsIterativeComplete(false);
+      setCurrentIterativeQuestion(null);
+      
+      try {
+        const request: EnhancePromptRequest = {
+          user_input: userPrompt,
+          mode: 'iterative'
+        };
+
+        const { data, error } = await promptService.enhancePrompt(request);
+        
+        if (error) {
+          throw new Error(error.message || 'Failed to generate question');
+        }
+
+        if (data?.question) {
+          setCurrentIterativeQuestion(data.question);
+          setCurrentView('iterative');
+        } else {
+          throw new Error('No question received');
+        }
+      } catch (error) {
+        console.error('Failed to start iterative questions:', error);
+        showNotification('Failed to start questions. Please try again.', 'error');
+        setSlothMessage("Hmm, even sloths need coffee sometimes. Try again? ☕");
+      } finally {
+        setIsGenerating(false);
+      }
+      return;
     }
     
     // Super lazy mode - generate directly
@@ -960,6 +1134,95 @@ Template: ${data.template_used}`);
     }, 2000);
   };
 
+  // Iterative mode handlers
+  const handleIterativeAnswer = async (answer: string, customText?: string) => {
+    if (!currentIterativeQuestion) return;
+    
+    // Add to conversation history
+    const newEntry: ConversationEntry = {
+      question: currentIterativeQuestion.question,
+      answer,
+      custom_text: customText
+    };
+    
+    const updatedHistory = [...conversationHistory, newEntry];
+    setConversationHistory(updatedHistory);
+    
+    // Get next question or check if complete
+    setIsGenerating(true);
+    setSlothMessage("Processing your answer... 🤔");
+    
+    try {
+      const request: EnhancePromptRequest = {
+        user_input: userPrompt,
+        mode: 'iterative',
+        conversation_history: updatedHistory
+      };
+
+      const { data, error } = await promptService.enhancePrompt(request);
+      
+      if (error) {
+        throw new Error(error.message || 'Failed to process answer');
+      }
+
+      if (data?.is_complete) {
+        // AI has enough information
+        setIsIterativeComplete(true);
+        setIterativeCompletionMessage(data.completion_message || "I've got everything I need! 🎉");
+        setCurrentIterativeQuestion(null);
+      } else if (data?.question) {
+        // Continue with next question
+        setCurrentIterativeQuestion(data.question);
+      } else {
+        throw new Error('Invalid response from server');
+      }
+    } catch (error) {
+      console.error('Failed to process answer:', error);
+      showNotification('Failed to process your answer. Please try again.', 'error');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleIterativeComplete = async () => {
+    // Generate final prompt using conversation history
+    setIsGenerating(true);
+    setSavedPromptId(null);
+    setSlothMessage("Creating your masterpiece from our conversation... 🎨");
+    
+    try {
+      const request: EnhancePromptRequest = {
+        user_input: userPrompt,
+        mode: 'iterative',
+        conversation_history: conversationHistory,
+        generate_final: true
+      };
+
+      const { data, error } = await promptService.enhancePrompt(request);
+      
+      if (error) {
+        throw new Error(error.message || 'Failed to generate prompt');
+      }
+
+      if (data?.enhanced_prompt) {
+        setGeneratedPrompt(data.enhanced_prompt);
+        setAvailableTweaks(data.lazy_tweaks || []);
+        setCurrentView('results');
+        setSlothMessage(`Perfect! I crafted the perfect prompt based on our conversation! 🎉
+        
+Laziness Score: ${data.laziness_score}/10 | Quality: ${data.prompt_quality}/10
+Template: ${data.template_used}`);
+      } else {
+        throw new Error('No enhanced prompt received');
+      }
+    } catch (error) {
+      console.error('Failed to generate final prompt:', error);
+      showNotification('Failed to generate prompt. Please try again.', 'error');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   return (
     <div className="font-sans">
       {/* Header - only show when not in history view */}
@@ -1032,6 +1295,19 @@ Template: ${data.template_used}`);
           savedPromptId={savedPromptId}
           user={user}
           availableTweaks={availableTweaks}
+        />
+      )}
+      {currentView === 'iterative' && (
+        <IterativeQuestionView
+          userPrompt={userPrompt}
+          currentQuestion={currentIterativeQuestion}
+          isComplete={isIterativeComplete}
+          completionMessage={iterativeCompletionMessage}
+          conversationHistory={conversationHistory}
+          isGenerating={isGenerating}
+          onAnswer={handleIterativeAnswer}
+          onComplete={handleIterativeComplete}
+          setCurrentView={setCurrentView}
         />
       )}
       {currentView === 'history' && (

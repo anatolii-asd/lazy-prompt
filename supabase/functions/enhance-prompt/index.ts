@@ -8,8 +8,21 @@ const corsHeaders = {
 
 interface PromptRequest {
   user_input: string;
-  mode: 'super_lazy' | 'regular_lazy';
+  mode: 'super_lazy' | 'regular_lazy' | 'iterative';
   context?: any; // For lazy tweaks
+  conversation_history?: ConversationEntry[];
+}
+
+interface ConversationEntry {
+  question: string;
+  answer: string;
+  custom_text?: string;
+}
+
+interface IterativeQuestion {
+  question: string;
+  options: Array<{text: string; emoji: string}>;
+  allow_custom: boolean;
 }
 
 interface GeminiChoice {
@@ -43,6 +56,10 @@ interface EnhancedPromptResponse {
   laziness_score: number;
   prompt_quality: number;
   template_used: string;
+  // New fields for iterative mode
+  question?: IterativeQuestion;
+  is_complete?: boolean;
+  completion_message?: string;
 }
 
 serve(async (req) => {
@@ -59,7 +76,8 @@ serve(async (req) => {
     )
 
     // Get request data
-    const { user_input, mode, context }: PromptRequest = await req.json()
+    const requestBody = await req.json()
+    const { user_input, mode, context, conversation_history }: PromptRequest = requestBody
 
     if (!user_input) {
       throw new Error('user_input is required')
@@ -68,8 +86,22 @@ serve(async (req) => {
     // Step 1: Find the most relevant template
     const templateMatch = await findBestTemplate(supabaseClient, user_input)
     
+    // Check if this is a final prompt generation request after iterative questions
+    if (mode === 'iterative' && requestBody.generate_final && conversation_history && conversation_history.length > 0) {
+      const finalPrompt = await generateFinalPromptFromHistory(user_input, templateMatch, conversation_history)
+      return new Response(
+        JSON.stringify(finalPrompt),
+        { 
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json' 
+          } 
+        }
+      )
+    }
+    
     // Step 2: Enhance the prompt using Gemini API
-    const enhancement = await enhanceWithGemini(user_input, templateMatch, mode, context)
+    const enhancement = await enhanceWithGemini(user_input, templateMatch, mode, context, conversation_history)
 
     return new Response(
       JSON.stringify(enhancement),
@@ -206,15 +238,21 @@ Return only the number (1-${templates.length}) of the best match, no explanation
 async function enhanceWithGemini(
   userInput: string, 
   template: TemplateMatch, 
-  mode: 'super_lazy' | 'regular_lazy',
-  context?: any
+  mode: 'super_lazy' | 'regular_lazy' | 'iterative',
+  context?: any,
+  conversationHistory?: ConversationEntry[]
 ): Promise<EnhancedPromptResponse> {
   
   if (mode === 'super_lazy') {
     return await generateCompletePrompt(userInput, template, context)
-  } else {
+  } else if (mode === 'regular_lazy') {
     return await generateQuestions(userInput, template)
+  } else if (mode === 'iterative') {
+    return await generateIterativeQuestion(userInput, template, conversationHistory || [])
   }
+  
+  // Fallback
+  return await generateQuestions(userInput, template)
 }
 
 async function generateCompletePrompt(
@@ -472,6 +510,207 @@ function getDefaultTemplate(): string {
 - Format requirements: [Structure, length, style preferences]
 - Quality level: [Depth of detail needed]
 - Technical level: [Complexity appropriate for audience]`
+}
+
+async function generateIterativeQuestion(
+  userInput: string,
+  template: TemplateMatch,
+  conversationHistory: ConversationEntry[]
+): Promise<EnhancedPromptResponse> {
+  
+  // Build conversation context
+  const historyText = conversationHistory.length > 0 
+    ? conversationHistory.map(entry => 
+        `Q: ${entry.question}\nA: ${entry.answer}${entry.custom_text ? ` (Additional: ${entry.custom_text})` : ''}`
+      ).join('\n\n')
+    : 'No previous questions asked yet.'
+  
+  const prompt = `
+You are helping a user create a better prompt through iterative questioning. You ask ONE question at a time.
+
+Original user input: "${userInput}"
+Template being used: ${template.template_body}
+
+Conversation so far:
+${historyText}
+
+Your task:
+1. Analyze what information is still needed to create a complete, high-quality prompt
+2. Decide if you have enough information to generate the final prompt
+3. If not enough info, generate ONE contextual question with 4 simple answer options
+
+Rules:
+- Ask only the MOST important missing information
+- Questions should be easy to answer (no deep thinking required)
+- Each option should be distinct and cover common cases
+- Include fun, relevant emojis for each option
+- Questions should build on previous answers
+- After 3-5 questions, you should usually have enough info
+- When you have enough info, set is_complete to true
+
+Return JSON in this format:
+
+If more info needed:
+{
+  "is_complete": false,
+  "question": {
+    "question": "Clear, simple question?",
+    "options": [
+      {"text": "Option 1", "emoji": "🎯"},
+      {"text": "Option 2", "emoji": "⚡"},
+      {"text": "Option 3", "emoji": "🚀"},
+      {"text": "Option 4", "emoji": "💡"}
+    ],
+    "allow_custom": true
+  }
+}
+
+If enough info collected:
+{
+  "is_complete": true,
+  "completion_message": "I've got everything I need! Ready to create your amazing prompt? 🎉",
+  "should_generate": true
+}
+`
+
+  try {
+    const response = await callGeminiAPI(prompt)
+    console.log('Raw iterative response:', response)
+    
+    // Clean the response
+    let cleanedResponse = response
+      .replace(/```json\s*/g, '')
+      .replace(/```\s*/g, '')
+      .trim()
+    
+    const jsonMatch = cleanedResponse.match(/\{[\s\S]*\}/)
+    if (jsonMatch) {
+      cleanedResponse = jsonMatch[0]
+    }
+    
+    cleanedResponse = cleanedResponse.replace(/[\u0000-\u001F\u007F-\u009F]/g, '')
+    
+    const parsed = JSON.parse(cleanedResponse)
+    
+    if (parsed.is_complete) {
+      // Ready to generate the final prompt
+      return {
+        is_complete: true,
+        completion_message: parsed.completion_message || "I've got everything I need! Ready to create your amazing prompt? 🎉",
+        laziness_score: 0,
+        prompt_quality: 0,
+        template_used: template.template_name
+      }
+    } else {
+      // Return the next question
+      return {
+        question: parsed.question,
+        is_complete: false,
+        laziness_score: 0,
+        prompt_quality: 0,
+        template_used: template.template_name
+      }
+    }
+  } catch (error) {
+    console.error('Error generating iterative question:', error)
+    // Fallback to a default question
+    return {
+      question: {
+        question: "What's the main goal you want to achieve?",
+        options: [
+          { text: "Get quick results", emoji: "⚡" },
+          { text: "Deep analysis", emoji: "🔍" },
+          { text: "Creative output", emoji: "🎨" },
+          { text: "Problem solving", emoji: "🧩" }
+        ],
+        allow_custom: true
+      },
+      is_complete: false,
+      laziness_score: 0,
+      prompt_quality: 0,
+      template_used: template.template_name
+    }
+  }
+}
+
+async function generateFinalPromptFromHistory(
+  userInput: string,
+  template: TemplateMatch,
+  conversationHistory: ConversationEntry[]
+): Promise<EnhancedPromptResponse> {
+  
+  const historyText = conversationHistory.map(entry => 
+    `Q: ${entry.question}\nA: ${entry.answer}${entry.custom_text ? ` (Additional: ${entry.custom_text})` : ''}`
+  ).join('\n\n')
+  
+  const prompt = `
+You are a prompt enhancement expert. Create a complete, ready-to-use prompt based on the user's input and their answers to clarifying questions.
+
+Original user input: "${userInput}"
+Template to use: ${template.template_body}
+
+User's answers to questions:
+${historyText}
+
+Instructions:
+1. Create a COMPLETE prompt that incorporates all the information gathered
+2. Fill in the template using the user's specific answers
+3. Make it specific, actionable, and professional
+4. The user should NOT have to fill in any blanks
+5. Include all context from their answers
+6. Make it sound natural and comprehensive
+
+Also provide 4-5 potential lazy tweaks the user might want.
+
+Format as JSON:
+{
+  "enhanced_prompt": "Complete ready-to-use prompt here",
+  "lazy_tweaks": [
+    {
+      "name": "Make it funnier",
+      "emoji": "😄",
+      "description": "Add humor and wit"
+    }
+  ],
+  "laziness_score": number (1-10),
+  "prompt_quality": number (1-10),
+  "template_used": "${template.template_name}"
+}
+`
+
+  try {
+    const response = await callGeminiAPI(prompt)
+    
+    let cleanedResponse = response
+      .replace(/```json\s*/g, '')
+      .replace(/```\s*/g, '')
+      .trim()
+    
+    const jsonMatch = cleanedResponse.match(/\{[\s\S]*\}/)
+    if (jsonMatch) {
+      cleanedResponse = jsonMatch[0]
+    }
+    
+    cleanedResponse = cleanedResponse.replace(/[\u0000-\u001F\u007F-\u009F]/g, '')
+    
+    const parsed = JSON.parse(cleanedResponse)
+    return {
+      enhanced_prompt: parsed.enhanced_prompt,
+      lazy_tweaks: parsed.lazy_tweaks || [],
+      laziness_score: parsed.laziness_score || 9,
+      prompt_quality: parsed.prompt_quality || 9,
+      template_used: template.template_name
+    }
+  } catch (error) {
+    console.error('Error generating final prompt from history:', error)
+    return {
+      enhanced_prompt: `Enhanced prompt based on your answers: ${userInput}`,
+      lazy_tweaks: [],
+      laziness_score: 7,
+      prompt_quality: 7,
+      template_used: template.template_name
+    }
+  }
 }
 
 function getDefaultQuestions(): Array<{question: string; options: Array<{text: string; emoji: string}>}> {
