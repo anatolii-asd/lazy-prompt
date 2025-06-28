@@ -6,7 +6,22 @@ The laziest way to create amazing prompts!
 
 This project is configured for deployment on Vercel.
 
-### Deploy to Vercel
+### Deploy with Vercel CLI
+
+1. Install Vercel CLI globally (if not already installed):
+   ```bash
+   npm install -g vercel
+   ```
+
+2. Deploy to production from the project folder:
+   ```bash
+   vercel --prod
+   ```
+
+3. Verify the deployment is working:
+   Visit https://lazy-prompt.vercel.app/
+
+### Alternative: Deploy via Vercel Dashboard
 
 1. Push your code to a Git repository (GitHub, GitLab, or Bitbucket)
 2. Go to [vercel.com](https://vercel.com) and sign in
