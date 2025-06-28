@@ -342,8 +342,50 @@ const ResultsView = ({
   setSelectedAnswers,
   setCustomAnswers,
   setShowCustomInput,
-  setAnsweredQuestions
-}: any) => (
+  setAnsweredQuestions,
+  savedPromptId,
+  user
+}: any) => {
+  const [versionHistory, setVersionHistory] = useState<any[]>([]);
+  const [loadingVersions, setLoadingVersions] = useState(false);
+
+  // Load version history when component mounts or savedPromptId changes
+  useEffect(() => {
+    const loadVersionHistory = async () => {
+      if (!savedPromptId || !user) return;
+      
+      setLoadingVersions(true);
+      try {
+        const { data, error } = await promptService.getPromptVersions(savedPromptId);
+        if (error) throw error;
+        setVersionHistory(data || []);
+      } catch (err) {
+        console.error('Failed to load version history:', err);
+      } finally {
+        setLoadingVersions(false);
+      }
+    };
+
+    loadVersionHistory();
+  }, [savedPromptId, user]);
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+
+    if (diffInHours < 1) return 'Just now';
+    if (diffInHours < 24) return `${diffInHours}h ago`;
+    if (diffInHours < 168) return `${Math.floor(diffInHours / 24)}d ago`;
+    return date.toLocaleDateString();
+  };
+
+  const truncateText = (text: string, maxLength: number) => {
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
+  };
+
+  return (
   <div className="min-h-screen bg-gradient-to-br from-green-100 via-blue-50 to-purple-100 p-4 pt-20">
     <div className="max-w-4xl mx-auto">
       <button 
@@ -420,6 +462,60 @@ const ResultsView = ({
               </div>
             </div>
           </div>
+
+          {/* Version History */}
+          {versionHistory.length > 1 && (
+            <div className="bg-white rounded-3xl shadow-xl mt-6 p-6">
+              <h4 className="text-xl font-bold text-gray-800 mb-4 text-center flex items-center justify-center">
+                📚 Version History 
+                <span className="ml-2 text-sm bg-purple-100 text-purple-700 px-2 py-1 rounded-full">
+                  {versionHistory.length} versions
+                </span>
+              </h4>
+              
+              {loadingVersions ? (
+                <div className="text-center py-4">
+                  <div className="animate-spin w-6 h-6 border-2 border-purple-600 border-t-transparent rounded-full mx-auto mb-2"></div>
+                  <p className="text-gray-600">Loading versions...</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {versionHistory.map((version, index) => (
+                    <div key={version.id} className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-medium">
+                            Version {version.version}
+                          </span>
+                          {index === 0 && (
+                            <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium">
+                              Current
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-sm text-gray-500">{formatDate(version.created_at)}</span>
+                      </div>
+                      
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <div>
+                          <h5 className="text-sm font-medium text-gray-700 mb-2">Original Input:</h5>
+                          <p className="text-sm text-gray-600 bg-gray-50 rounded-lg p-3">
+                            {truncateText(version.original_input, 120)}
+                          </p>
+                        </div>
+                        <div>
+                          <h5 className="text-sm font-medium text-gray-700 mb-2">Generated Prompt:</h5>
+                          <p className="text-sm text-gray-600 bg-gray-50 rounded-lg p-3">
+                            {truncateText(version.generated_prompt, 120)}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Sidebar */}
@@ -525,7 +621,8 @@ const ResultsView = ({
       </div>
     )}
   </div>
-);
+  );
+};
 
 const SlothPromptBoost = () => {
   const { user } = useAuth();
@@ -850,6 +947,8 @@ Provide a comprehensive, well-structured response that meets all the specified c
           setCustomAnswers={setCustomAnswers}
           setShowCustomInput={setShowCustomInput}
           setAnsweredQuestions={setAnsweredQuestions}
+          savedPromptId={savedPromptId}
+          user={user}
         />
       )}
       {currentView === 'history' && (
