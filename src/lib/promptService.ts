@@ -20,8 +20,22 @@ export interface PromptWithVersions extends Prompt {
 
 export interface EnhancePromptRequest {
   user_input: string
-  mode: 'super_lazy' | 'regular_lazy'
+  mode: 'super_lazy' | 'regular_lazy' | 'iterative'
   context?: any
+  conversation_history?: ConversationEntry[]
+  generate_final?: boolean
+}
+
+export interface ConversationEntry {
+  question: string
+  answer: string
+  custom_text?: string
+}
+
+export interface IterativeQuestion {
+  question: string
+  options: Array<{text: string; emoji: string}>
+  allow_custom: boolean
 }
 
 export interface QuestionOption {
@@ -47,6 +61,10 @@ export interface EnhancedPromptResponse {
   laziness_score: number
   prompt_quality: number
   template_used: string
+  // New fields for iterative mode
+  question?: IterativeQuestion
+  is_complete?: boolean
+  completion_message?: string
 }
 
 export const promptService = {
