@@ -8,17 +8,12 @@ This project is configured for deployment on Vercel.
 
 ### Deploy with Vercel CLI
 
-1. Install Vercel CLI globally (if not already installed):
-   ```bash
-   npm install -g vercel
-   ```
-
-2. Deploy to production from the project folder:
+1. Deploy to production from the project folder:
    ```bash
    vercel --prod
    ```
 
-3. Verify the deployment is working:
+2. Verify the deployment is working:
    Visit https://lazy-prompt.vercel.app/
 
 ### Alternative: Deploy via Vercel Dashboard
