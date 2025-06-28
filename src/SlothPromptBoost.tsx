@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { Sparkles, Zap, Copy, Download, RefreshCw, ArrowLeft, Save } from 'lucide-react';
+import { Sparkles, Zap, Copy, RefreshCw, ArrowLeft } from 'lucide-react';
 import { useAuth } from './contexts/AuthContext';
 import { promptService, PromptWithVersions } from './lib/promptService';
 import ProfileDropdown from './components/ProfileDropdown';
@@ -342,9 +342,7 @@ const ResultsView = ({
   setSelectedAnswers,
   setCustomAnswers,
   setShowCustomInput,
-  setAnsweredQuestions,
-  onSavePrompt,
-  saving
+  setAnsweredQuestions
 }: any) => (
   <div className="min-h-screen bg-gradient-to-br from-green-100 via-blue-50 to-purple-100 p-4 pt-20">
     <div className="max-w-4xl mx-auto">
@@ -386,34 +384,13 @@ const ResultsView = ({
               <div className="bg-gray-50 rounded-2xl p-4 font-mono text-sm leading-relaxed mb-4 max-h-80 overflow-y-auto border-2 border-gray-200">
                 {generatedPrompt}
               </div>
-              <div className="flex flex-wrap gap-3">
+              <div className="flex justify-center">
                 <button 
                   onClick={() => navigator.clipboard.writeText(generatedPrompt)}
                   className="flex items-center space-x-2 bg-green-500 text-white px-4 py-2 rounded-xl hover:bg-green-600 transition-colors font-medium shadow-md"
                 >
                   <Copy className="w-4 h-4" />
                   <span>Copy Magic! ✨</span>
-                </button>
-                <button className="flex items-center space-x-2 bg-blue-500 text-white px-4 py-2 rounded-xl hover:bg-blue-600 transition-colors font-medium shadow-md">
-                  <Download className="w-4 h-4" />
-                  <span>Download</span>
-                </button>
-                <button 
-                  onClick={onSavePrompt}
-                  disabled={saving}
-                  className="flex items-center space-x-2 bg-purple-500 text-white px-4 py-2 rounded-xl hover:bg-purple-600 transition-colors font-medium shadow-md disabled:opacity-50"
-                >
-                  {saving ? (
-                    <>
-                      <div className="w-4 h-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                      <span>Saving...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Save className="w-4 h-4" />
-                      <span>Save Prompt</span>
-                    </>
-                  )}
                 </button>
               </div>
             </div>
@@ -587,6 +564,13 @@ const SlothPromptBoost = () => {
       promptTextareaRef.current?.focus();
     }
   }, [currentView]);
+
+  // Auto-save prompt when reaching results view
+  useEffect(() => {
+    if (currentView === 'results' && user && generatedPrompt && !savedPromptId) {
+      handleSavePrompt();
+    }
+  }, [currentView, user, generatedPrompt, savedPromptId]);
 
   // Memoize the random quote to prevent re-renders
   const randomQuote = useMemo(() => {
@@ -866,8 +850,6 @@ Provide a comprehensive, well-structured response that meets all the specified c
           setCustomAnswers={setCustomAnswers}
           setShowCustomInput={setShowCustomInput}
           setAnsweredQuestions={setAnsweredQuestions}
-          onSavePrompt={handleSavePrompt}
-          saving={saving}
         />
       )}
       {currentView === 'history' && (
