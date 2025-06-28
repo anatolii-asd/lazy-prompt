@@ -1,0 +1,2 @@
+Deploy command: vercel --prod
+Verification URL: https://lazy-prompt.vercel.app/

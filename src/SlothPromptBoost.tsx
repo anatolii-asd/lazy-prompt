@@ -700,6 +700,14 @@ const SlothPromptBoost = () => {
   const handleGenerate = () => {
     if (!userPrompt.trim()) return;
     
+    // Check laziness level to determine flow
+    if (selectedLaziness === 'regular-lazy') {
+      // Go to workspace for 5 questions
+      setCurrentView('workspace');
+      return;
+    }
+    
+    // Super lazy mode - generate directly
     setIsGenerating(true);
     setSavedPromptId(null); // Reset for new prompt
     setSlothMessage("Sprinkling some lazy magic... ✨");
