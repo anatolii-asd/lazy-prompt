@@ -50,6 +50,69 @@ export type Database = {
           updated_at?: string
         }
       }
+      prompt_templates: {
+        Row: {
+          id: number
+          template_name: string
+          template_body: string
+          category: string | null
+          description: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: number
+          template_name: string
+          template_body: string
+          category?: string | null
+          description?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: number
+          template_name?: string
+          template_body?: string
+          category?: string | null
+          description?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+    }
+    Functions: {
+      get_all_templates: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: number
+          template_name: string
+          category: string
+          description: string
+        }[]
+      }
+      get_templates_by_category: {
+        Args: {
+          cat: string
+        }
+        Returns: {
+          id: number
+          template_name: string
+          template_body: string
+          description: string
+        }[]
+      }
+      search_templates: {
+        Args: {
+          search_term: string
+        }
+        Returns: {
+          id: number
+          template_name: string
+          category: string
+          description: string
+          relevance_score: number
+        }[]
+      }
     }
   }
 }

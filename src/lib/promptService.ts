@@ -3,6 +3,7 @@ import { User } from '@supabase/supabase-js'
 
 export type Prompt = Database['public']['Tables']['prompts']['Row']
 export type PromptInsert = Database['public']['Tables']['prompts']['Insert']
+export type PromptTemplate = Database['public']['Tables']['prompt_templates']['Row']
 
 export interface PromptData {
   originalInput: string
@@ -15,6 +16,37 @@ export interface PromptData {
 
 export interface PromptWithVersions extends Prompt {
   total_versions: number
+}
+
+export interface EnhancePromptRequest {
+  user_input: string
+  mode: 'super_lazy' | 'regular_lazy'
+  context?: any
+}
+
+export interface QuestionOption {
+  text: string
+  emoji: string
+}
+
+export interface Question {
+  question: string
+  options: QuestionOption[]
+}
+
+export interface LazyTweak {
+  name: string
+  emoji: string
+  description: string
+}
+
+export interface EnhancedPromptResponse {
+  enhanced_prompt?: string
+  questions?: Question[]
+  lazy_tweaks?: LazyTweak[]
+  laziness_score: number
+  prompt_quality: number
+  template_used: string
 }
 
 export const promptService = {
@@ -157,6 +189,61 @@ export const promptService = {
         .or(`original_input.ilike.%${query}%,generated_prompt.ilike.%${query}%`)
         .order('created_at', { ascending: false })
         .limit(limit)
+
+      return { data, error }
+    } catch (error) {
+      return { data: null, error }
+    }
+  },
+
+  // Enhanced prompt generation using Gemini API
+  async enhancePrompt(request: EnhancePromptRequest): Promise<{ data: EnhancedPromptResponse | null; error: any }> {
+    try {
+      const { data, error } = await supabase.functions.invoke('enhance-prompt', {
+        body: request
+      })
+
+      if (error) {
+        return { data: null, error }
+      }
+
+      return { data, error: null }
+    } catch (error) {
+      return { data: null, error }
+    }
+  },
+
+  // Get all templates
+  async getAllTemplates(): Promise<{ data: PromptTemplate[] | null; error: any }> {
+    try {
+      const { data, error } = await supabase
+        .from('prompt_templates')
+        .select('*')
+        .order('category', { ascending: true })
+
+      return { data, error }
+    } catch (error) {
+      return { data: null, error }
+    }
+  },
+
+  // Get templates by category
+  async getTemplatesByCategory(category: string): Promise<{ data: PromptTemplate[] | null; error: any }> {
+    try {
+      const { data, error } = await supabase
+        .rpc('get_templates_by_category', { cat: category })
+
+      return { data, error }
+    } catch (error) {
+      return { data: null, error }
+    }
+  },
+
+  // Search templates
+  async searchTemplates(searchTerm: string): Promise<{ data: any[] | null; error: any }> {
+    try {
+      const { data, error } = await supabase
+        .rpc('search_templates', { search_term: searchTerm })
 
       return { data, error }
     } catch (error) {

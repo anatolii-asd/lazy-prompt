@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { Sparkles, Zap, Copy, RefreshCw, ArrowLeft } from 'lucide-react';
 import { useAuth } from './contexts/AuthContext';
-import { promptService, PromptWithVersions } from './lib/promptService';
+import { promptService, PromptWithVersions, EnhancePromptRequest, LazyTweak } from './lib/promptService';
 import ProfileDropdown from './components/ProfileDropdown';
 import PromptHistory from './components/PromptHistory';
 import NotificationToast from './components/NotificationToast';
@@ -182,9 +182,17 @@ const WorkspaceView = ({
   handleWorkspaceGenerate, 
   isGenerating, 
   slothMessage, 
-  setCurrentView 
+  setCurrentView,
+  generatedQuestions
 }: any) => {
-  const questions = [
+  // Use generated questions if available, otherwise fall back to default questions
+  const questions = generatedQuestions.length > 0 ? 
+    generatedQuestions.map((q: any, index: number) => ({
+      id: `question_${index}`,
+      question: q.question,
+      options: q.options.map((opt: any) => `${opt.text} ${opt.emoji}`),
+      placeholder: 'Enter your custom answer...'
+    })) : [
     {
       id: 'audience',
       question: "Who's this for? 🎯",
@@ -344,7 +352,8 @@ const ResultsView = ({
   setShowCustomInput,
   setAnsweredQuestions,
   savedPromptId,
-  user
+  user,
+  availableTweaks
 }: any) => {
   const [versionHistory, setVersionHistory] = useState<any[]>([]);
   const [loadingVersions, setLoadingVersions] = useState(false);
@@ -529,19 +538,28 @@ const ResultsView = ({
               Lazy Tweaks 🔧
             </h4>
             <div className="space-y-3">
-              {['Make it funnier 😄', 'Add more details 📝', 'Make it shorter ✂️', 'More professional 👔'].map((tweak) => (
-                <button
-                  key={tweak}
-                  onClick={() => setSelectedTweak(tweak)}
-                  className={`w-full text-left p-3 rounded-xl transition-colors border-2 font-medium ${
-                    selectedTweak === tweak
-                      ? 'bg-purple-50 border-purple-300 text-purple-800'
-                      : 'bg-gray-50 hover:bg-gray-100 border-gray-200 hover:border-purple-300 text-gray-700'
-                  }`}
-                >
-                  <div className="text-sm">{tweak}</div>
-                </button>
-              ))}
+              {(availableTweaks && availableTweaks.length > 0 ? availableTweaks : [
+                { name: 'Make it funnier', emoji: '😄', description: 'Add humor and wit' },
+                { name: 'Add more details', emoji: '📝', description: 'Include more specifics' },
+                { name: 'Make it shorter', emoji: '✂️', description: 'Keep it concise' },
+                { name: 'More professional', emoji: '👔', description: 'Formal tone' }
+              ]).map((tweak) => {
+                const displayName = `${tweak.name} ${tweak.emoji}`;
+                return (
+                  <button
+                    key={tweak.name}
+                    onClick={() => setSelectedTweak(displayName)}
+                    className={`w-full text-left p-3 rounded-xl transition-colors border-2 font-medium ${
+                      selectedTweak === displayName
+                        ? 'bg-purple-50 border-purple-300 text-purple-800'
+                        : 'bg-gray-50 hover:bg-gray-100 border-gray-200 hover:border-purple-300 text-gray-700'
+                    }`}
+                  >
+                    <div className="text-sm font-medium">{displayName}</div>
+                    <div className="text-xs text-gray-500 mt-1">{tweak.description}</div>
+                  </button>
+                );
+              })}
             </div>
             
             {/* Confirmation Button */}
@@ -647,6 +665,8 @@ const SlothPromptBoost = () => {
     type: 'success' | 'error' | 'warning' | 'info';
     isVisible: boolean;
   }>({ message: '', type: 'info', isVisible: false });
+  const [generatedQuestions, setGeneratedQuestions] = useState<any[]>([]);
+  const [availableTweaks, setAvailableTweaks] = useState<LazyTweak[]>([]);
   
   const promptTextareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -783,13 +803,42 @@ const SlothPromptBoost = () => {
     }));
   };
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     if (!userPrompt.trim()) return;
     
     // Check laziness level to determine flow
     if (selectedLaziness === 'regular-lazy') {
-      // Go to workspace for 5 questions
-      setCurrentView('workspace');
+      // Generate questions first, then go to workspace
+      setIsGenerating(true);
+      setSlothMessage("Generating smart questions for you... 🤔");
+      
+      try {
+        const request: EnhancePromptRequest = {
+          user_input: userPrompt,
+          mode: 'regular_lazy'
+        };
+
+        const { data, error } = await promptService.enhancePrompt(request);
+        
+        if (error) {
+          throw new Error(error.message || 'Failed to generate questions');
+        }
+
+        if (data?.questions && data.questions.length > 0) {
+          // Store the generated questions for use in workspace
+          setGeneratedQuestions(data.questions);
+          setCurrentView('workspace');
+          setSlothMessage("Answer these questions and we'll make magic happen! ✨");
+        } else {
+          throw new Error('No questions received');
+        }
+      } catch (error) {
+        console.error('Failed to generate questions:', error);
+        showNotification('Failed to generate questions. Please try again.', 'error');
+        setSlothMessage("Hmm, even sloths need coffee sometimes. Try again? ☕");
+      } finally {
+        setIsGenerating(false);
+      }
       return;
     }
     
@@ -798,63 +847,90 @@ const SlothPromptBoost = () => {
     setSavedPromptId(null); // Reset for new prompt
     setSlothMessage("Sprinkling some lazy magic... ✨");
     
-    // Simulate API call
-    setTimeout(() => {
-      const mockPrompt = `You are a professional ${userPrompt.includes('email') ? 'email' : 'content'} expert. Your task is to create a ${userPrompt.toLowerCase()}. 
+    try {
+      const request: EnhancePromptRequest = {
+        user_input: userPrompt,
+        mode: 'super_lazy'
+      };
 
-Please follow these guidelines:
-- Be clear and concise
-- Use a professional yet approachable tone
-- Include specific examples where relevant
-- Structure the content logically
-- Ensure the output meets the user's specific needs
-
-Context: ${userPrompt}
-
-Please provide a comprehensive and well-structured response that addresses all aspects of the request.`;
+      const { data, error } = await promptService.enhancePrompt(request);
       
-      setGeneratedPrompt(mockPrompt);
-      setCurrentView('results');
+      if (error) {
+        throw new Error(error.message || 'Failed to enhance prompt');
+      }
+
+      if (data?.enhanced_prompt) {
+        setGeneratedPrompt(data.enhanced_prompt);
+        setAvailableTweaks(data.lazy_tweaks || []);
+        setCurrentView('results');
+        setSlothMessage(`Boom! Your lazy input just became a masterpiece! 🎉 
+        
+Laziness Score: ${data.laziness_score}/10 | Quality: ${data.prompt_quality}/10
+Template: ${data.template_used}`);
+      } else {
+        throw new Error('No enhanced prompt received');
+      }
+    } catch (error) {
+      console.error('Failed to enhance prompt:', error);
+      showNotification('Failed to enhance prompt. Please try again.', 'error');
+      setSlothMessage("Oops! Even sloths sometimes trip on branches. Try again? 🦥");
+    } finally {
       setIsGenerating(false);
-      setSlothMessage("Boom! Your lazy input just became a masterpiece! 🎉");
-    }, 3000);
+    }
   };
 
-  const handleWorkspaceGenerate = () => {
+  const handleWorkspaceGenerate = async () => {
     if (answeredQuestions < 3) return;
     
     setIsGenerating(true);
     setSavedPromptId(null); // Reset for new prompt
     setSlothMessage("Combining your answers with our lazy genius... 🧠");
     
-    // Simulate API call with answers
-    setTimeout(() => {
+    try {
+      // Prepare the context with user answers
       const answers = Object.entries(selectedAnswers).map(([key, value]) => {
         if (value === 'custom') {
           return `${key}: ${customAnswers[key] || ''}`;
         }
         return `${key}: ${value}`;
-      }).join('\n');
+      }).reduce((acc, answer) => {
+        acc[answer.split(': ')[0]] = answer.split(': ')[1];
+        return acc;
+      }, {} as any);
+
+      const request: EnhancePromptRequest = {
+        user_input: userPrompt,
+        mode: 'super_lazy', // Use super_lazy mode but with context
+        context: {
+          questions: generatedQuestions,
+          answers: answers
+        }
+      };
+
+      const { data, error } = await promptService.enhancePrompt(request);
       
-      const mockPrompt = `You are a professional content expert. Create a ${userPrompt.toLowerCase()} based on these specific requirements:
+      if (error) {
+        throw new Error(error.message || 'Failed to enhance prompt');
+      }
 
-${answers}
-
-Please ensure your response:
-- Addresses the specific audience and tone requirements
-- Follows the desired length and format
-- Achieves the stated goal effectively
-- Incorporates any additional requirements mentioned
-
-Context: ${userPrompt}
-
-Provide a comprehensive, well-structured response that meets all the specified criteria.`;
-      
-      setGeneratedPrompt(mockPrompt);
-      setCurrentView('results');
+      if (data?.enhanced_prompt) {
+        setGeneratedPrompt(data.enhanced_prompt);
+        setAvailableTweaks(data.lazy_tweaks || []);
+        setCurrentView('results');
+        setSlothMessage(`Your custom masterpiece is ready! We really outdid ourselves this time! 🏆
+        
+Laziness Score: ${data.laziness_score}/10 | Quality: ${data.prompt_quality}/10
+Template: ${data.template_used}`);
+      } else {
+        throw new Error('No enhanced prompt received');
+      }
+    } catch (error) {
+      console.error('Failed to enhance prompt:', error);
+      showNotification('Failed to enhance prompt. Please try again.', 'error');
+      setSlothMessage("Oops! Even sloths sometimes trip on branches. Try again? 🦥");
+    } finally {
       setIsGenerating(false);
-      setSlothMessage("Your custom masterpiece is ready! We really outdid ourselves this time! 🏆");
-    }, 4000);
+    }
   };
 
   const handleTweakConfirm = () => {
@@ -935,6 +1011,7 @@ Provide a comprehensive, well-structured response that meets all the specified c
           isGenerating={isGenerating}
           slothMessage={slothMessage}
           setCurrentView={setCurrentView}
+          generatedQuestions={generatedQuestions}
         />
       )}
       {currentView === 'results' && (
@@ -954,6 +1031,7 @@ Provide a comprehensive, well-structured response that meets all the specified c
           setAnsweredQuestions={setAnsweredQuestions}
           savedPromptId={savedPromptId}
           user={user}
+          availableTweaks={availableTweaks}
         />
       )}
       {currentView === 'history' && (
