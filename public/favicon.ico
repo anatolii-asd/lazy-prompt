@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <!-- Background -->
+  <circle cx="8" cy="8" r="7.5" fill="#10b981"/>
+  
+  <!-- Sloth -->
+  <circle cx="8" cy="6" r="2.5" fill="#8b5cf6"/>
+  <ellipse cx="8" cy="9" rx="4" ry="3" fill="#8b5cf6"/>
+  
+  <!-- Eyes -->
+  <circle cx="7" cy="5.5" r="0.5" fill="#1f2937"/>
+  <circle cx="9" cy="5.5" r="0.5" fill="#1f2937"/>
+  
+  <!-- Sparkle -->
+  <circle cx="12" cy="4" r="0.5" fill="#fbbf24"/>
+</svg>
