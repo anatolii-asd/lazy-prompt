@@ -352,12 +352,14 @@ const ResultsView = ({
   // Load version history when component mounts or savedPromptId changes
   useEffect(() => {
     const loadVersionHistory = async () => {
+      console.log('Loading version history for savedPromptId:', savedPromptId);
       if (!savedPromptId || !user) return;
       
       setLoadingVersions(true);
       try {
         const { data, error } = await promptService.getPromptVersions(savedPromptId);
         if (error) throw error;
+        console.log('Version history loaded:', data);
         setVersionHistory(data || []);
       } catch (err) {
         console.error('Failed to load version history:', err);
@@ -464,7 +466,7 @@ const ResultsView = ({
           </div>
 
           {/* Version History */}
-          {versionHistory.length > 1 && (
+          {savedPromptId && versionHistory.length > 0 && (
             <div className="bg-white rounded-3xl shadow-xl mt-6 p-6">
               <h4 className="text-xl font-bold text-gray-800 mb-4 text-center flex items-center justify-center">
                 📚 Version History 
@@ -713,7 +715,10 @@ const SlothPromptBoost = () => {
       
       if (error) throw error;
 
-      setSavedPromptId(data?.parent_id || data?.id || null);
+      // For version history, use parent_id if it exists (for refinements), otherwise use the prompt's own id (for new prompts)
+      const promptId = data?.parent_id || data?.id || null;
+      setSavedPromptId(promptId);
+      console.log('Saved prompt with ID:', promptId, 'Data:', data);
       await loadPromptCount(); // Refresh count
       showNotification('Prompt saved successfully! 🎉', 'success');
     } catch (error) {
