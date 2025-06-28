@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
-import { promptService, PromptWithVersions } from '../lib/promptService'
-import { ArrowLeft, Search, Loader2, Clock, Layers, Play, Trash2 } from 'lucide-react'
+import { promptService, PromptWithVersions, Prompt } from '../lib/promptService'
+import { ArrowLeft, Search, Loader2, Clock, Layers, Play, Trash2, ChevronDown, ChevronRight } from 'lucide-react'
 
 interface PromptHistoryProps {
   onBack: () => void
@@ -14,6 +14,8 @@ export default function PromptHistory({ onBack, onLoadPrompt }: PromptHistoryPro
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [error, setError] = useState('')
+  const [expandedPrompts, setExpandedPrompts] = useState<Set<string>>(new Set())
+  const [promptVersions, setPromptVersions] = useState<Record<string, Prompt[]>>({})
 
   useEffect(() => {
     if (user) {
@@ -62,6 +64,31 @@ export default function PromptHistory({ onBack, onLoadPrompt }: PromptHistoryPro
       setPrompts(prev => prev.filter(p => p.id !== promptId))
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete prompt')
+    }
+  }
+
+  const toggleVersions = async (promptId: string) => {
+    if (expandedPrompts.has(promptId)) {
+      // Collapse
+      setExpandedPrompts(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(promptId)
+        return newSet
+      })
+    } else {
+      // Expand and load versions if not already loaded
+      if (!promptVersions[promptId]) {
+        try {
+          const { data, error } = await promptService.getPromptVersions(promptId)
+          if (error) throw error
+          setPromptVersions(prev => ({ ...prev, [promptId]: data || [] }))
+        } catch (err) {
+          setError(err instanceof Error ? err.message : 'Failed to load versions')
+          return
+        }
+      }
+      
+      setExpandedPrompts(prev => new Set([...prev, promptId]))
     }
   }
 
@@ -189,10 +216,18 @@ export default function PromptHistory({ onBack, onLoadPrompt }: PromptHistoryPro
                           {laziness.icon} {laziness.label}
                         </span>
                         {prompt.total_versions > 1 && (
-                          <span className="flex items-center text-sm text-gray-500">
+                          <button
+                            onClick={() => toggleVersions(prompt.id)}
+                            className="flex items-center text-sm text-gray-500 hover:text-purple-600 transition-colors"
+                          >
                             <Layers className="w-4 h-4 mr-1" />
                             {prompt.total_versions} versions
-                          </span>
+                            {expandedPrompts.has(prompt.id) ? (
+                              <ChevronDown className="w-4 h-4 ml-1" />
+                            ) : (
+                              <ChevronRight className="w-4 h-4 ml-1" />
+                            )}
+                          </button>
                         )}
                       </div>
                       <h3 className="text-lg font-semibold text-gray-800 mb-2">
@@ -203,6 +238,44 @@ export default function PromptHistory({ onBack, onLoadPrompt }: PromptHistoryPro
                       </p>
                     </div>
                   </div>
+
+                  {/* Version History */}
+                  {expandedPrompts.has(prompt.id) && promptVersions[prompt.id] && (
+                    <div className="mb-4 border-t border-gray-200 pt-4">
+                      <h4 className="text-sm font-medium text-gray-700 mb-3">Version History:</h4>
+                      <div className="space-y-3">
+                        {promptVersions[prompt.id].map((version) => (
+                          <div key={version.id} className="bg-gray-50 rounded-lg p-3 border-l-4 border-purple-200">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-sm font-medium text-purple-700">
+                                Version {version.version}
+                              </span>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-gray-500">
+                                  {formatDate(version.created_at)}
+                                </span>
+                                <button
+                                  onClick={() => onLoadPrompt({
+                                    ...version,
+                                    total_versions: prompt.total_versions
+                                  } as PromptWithVersions)}
+                                  className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded hover:bg-purple-200 transition"
+                                >
+                                  Load v{version.version}
+                                </button>
+                              </div>
+                            </div>
+                            <p className="text-xs text-gray-600 mb-1">
+                              <span className="font-medium">Input:</span> {truncateText(version.original_input, 80)}
+                            </p>
+                            <p className="text-xs text-gray-600">
+                              <span className="font-medium">Generated:</span> {truncateText(version.generated_prompt, 100)}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   <div className="flex items-center justify-between">
                     <div className="flex items-center text-sm text-gray-500">
