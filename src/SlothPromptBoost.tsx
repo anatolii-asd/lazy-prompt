@@ -1,38 +1,10 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Sparkles, Zap, Copy, RefreshCw, ArrowLeft } from 'lucide-react';
 import { useAuth } from './contexts/AuthContext';
-import { promptService, PromptWithVersions, EnhancePromptRequest, LazyTweak, ConversationEntry, IterativeQuestion } from './lib/promptService';
+import { promptService, PromptWithVersions, EnhancePromptRequest, LazyTweak, RoundQuestion } from './lib/promptService';
 import ProfileDropdown from './components/ProfileDropdown';
 import PromptHistory from './components/PromptHistory';
 import NotificationToast from './components/NotificationToast';
-import QuestionCard from './components/QuestionCard';
-import CompletionConfirmation from './components/CompletionConfirmation';
-import { AnimatePresence } from 'framer-motion';
-
-// Move constants outside component to prevent recreation
-const lazinessLevels = [
-  {
-    id: 'super-lazy',
-    name: 'Super Duper Lazy',
-    icon: '😴',
-    description: "I'm too lazy to even think about options",
-    slothSays: "Perfect! Let me do ALL the work for you 💤"
-  },
-  {
-    id: 'regular-lazy',
-    name: 'Just Regular Lazy', 
-    icon: '🛋️',
-    description: "I can answer like 3 easy questions, maybe",
-    slothSays: "Okay, I'll ask you 5 tiny questions. Super easy! 🍃"
-  },
-  {
-    id: 'iterative-lazy',
-    name: 'Progressively Lazy',
-    icon: '🚶‍♂️',
-    description: "One simple question at a time, I'll stop when ready",
-    slothSays: "Smart choice! I'll ask questions one by one until I have enough info 🎯"
-  }
-];
 
 const slothQuotes = [
   "Why work hard when you can work smart? 🦥",
@@ -61,10 +33,6 @@ const Header = ({ promptCount, onShowHistory }: { promptCount: number; onShowHis
 const HomeView = ({ 
   userPrompt, 
   setUserPrompt, 
-  selectedLaziness, 
-  setSelectedLaziness, 
-  slothMessage, 
-  setSlothMessage, 
   handleGenerate, 
   isGenerating, 
   promptTextareaRef, 
@@ -78,83 +46,52 @@ const HomeView = ({
           <h1 className="text-4xl font-bold text-gray-800 mb-2">
             🦥 SlothBoost
           </h1>
-          <p className="text-xl text-gray-600 mb-4">The laziest way to create amazing prompts</p>
+          <p className="text-xl text-gray-600 mb-4">The smartest way to create amazing prompts</p>
           <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-4 max-w-md mx-auto border border-gray-200">
             <p className="text-gray-700 italic">"{randomQuote}"</p>
           </div>
         </div>
 
         {/* Main Content */}
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Left Column - Prompt Input */}
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-3xl shadow-xl p-8 border-2 border-gray-100">
-              <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
-                <Sparkles className="w-7 h-7 mr-3 text-yellow-500" />
-                What's your lazy prompt idea?
-              </h2>
-              
-              <textarea
-                ref={promptTextareaRef}
-                value={userPrompt}
-                onChange={(e) => setUserPrompt(e.target.value)}
-                placeholder="Type something like: 'help me write an email' or 'create a workout plan' or literally anything..."
-                className="w-full h-32 p-4 border-2 border-gray-200 rounded-2xl resize-none focus:border-purple-400 focus:ring-4 focus:ring-purple-100 outline-none transition-all text-gray-700 placeholder-gray-400"
-              />
-              
-              <div className="mt-4 text-sm text-gray-500 text-center">
-                💡 Pro tip: The vaguer, the lazier, the better! We'll handle the details.
-              </div>
+        <div className="max-w-3xl mx-auto">
+          <div className="bg-white rounded-3xl shadow-xl p-8 border-2 border-gray-100">
+            <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center justify-center">
+              <Sparkles className="w-7 h-7 mr-3 text-yellow-500" />
+              What's your prompt idea?
+            </h2>
+            
+            <textarea
+              ref={promptTextareaRef}
+              value={userPrompt}
+              onChange={(e) => setUserPrompt(e.target.value)}
+              placeholder="Type something like: 'help me write an email' or 'create a workout plan' or literally anything..."
+              className="w-full h-40 p-4 border-2 border-gray-200 rounded-2xl resize-none focus:border-purple-400 focus:ring-4 focus:ring-purple-100 outline-none transition-all text-gray-700 placeholder-gray-400"
+            />
+            
+            <div className="mt-4 text-sm text-gray-500 text-center">
+              💡 Pro tip: We'll ask you smart questions to make your prompt perfect!
             </div>
           </div>
 
-          {/* Right Column - Laziness Level */}
-          <div>
-            <div className="bg-white rounded-3xl shadow-xl p-6 border-2 border-gray-100">
-              <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
-                <Zap className="w-6 h-6 mr-2 text-blue-500" />
-                Pick Your Laziness Level
-              </h3>
-              
-              <div className="space-y-4">
-                {lazinessLevels.map(level => (
-                  <button
-                    key={level.id}
-                    onClick={() => {
-                      setSelectedLaziness(level.id);
-                      setSlothMessage(level.slothSays);
-                    }}
-                    className={`w-full text-left p-4 rounded-2xl border-2 transition-all ${
-                      selectedLaziness === level.id
-                        ? 'bg-purple-50 border-purple-300 shadow-md'
-                        : 'bg-gray-50 hover:bg-gray-100 border-gray-200 hover:border-purple-300'
-                    }`}
-                  >
-                    <div className="flex items-center mb-2">
-                      <span className="text-2xl mr-3">{level.icon}</span>
-                      <span className="font-semibold text-gray-800">{level.name}</span>
-                    </div>
-                    <p className="text-sm text-gray-600">{level.description}</p>
-                  </button>
-                ))}
+          {/* How it works */}
+          <div className="mt-8 bg-white/80 backdrop-blur-sm rounded-3xl p-6 shadow-lg border border-gray-200">
+            <h3 className="text-lg font-bold text-gray-800 mb-4 text-center">How it works 🎯</h3>
+            <div className="grid md:grid-cols-3 gap-4">
+              <div className="text-center">
+                <div className="text-2xl mb-2">1️⃣</div>
+                <p className="text-sm text-gray-600">Answer 6 basic questions</p>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl mb-2">2️⃣</div>
+                <p className="text-sm text-gray-600">Review & optionally refine</p>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl mb-2">3️⃣</div>
+                <p className="text-sm text-gray-600">Get your perfect prompt!</p>
               </div>
             </div>
           </div>
         </div>
-
-        {/* Sloth Response */}
-        {slothMessage && (
-          <div className="mt-8 max-w-2xl mx-auto">
-            <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-6 shadow-lg relative border border-gray-200">
-              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 w-8 h-8 bg-white rounded-full border border-gray-200"></div>
-              <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-4 h-4 bg-white rounded-full border border-gray-200"></div>
-              <div className="text-center">
-                <p className="text-lg text-gray-700 mb-2">{slothMessage}</p>
-                <div className="text-4xl">🦥</div>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Generate Button */}
         <div className="text-center mt-8">
@@ -166,12 +103,12 @@ const HomeView = ({
             {isGenerating ? (
               <div className="flex items-center">
                 <div className="animate-spin mr-3">🦥</div>
-                Being Supremely Lazy...
+                Getting ready...
               </div>
             ) : (
               <div className="flex items-center">
                 <Sparkles className="w-6 h-6 mr-3" />
-                Make It Amazing (Lazily)! ✨
+                Start Creating My Prompt! ✨
               </div>
             )}
           </button>
@@ -181,170 +118,6 @@ const HomeView = ({
   );
 };
 
-const WorkspaceView = ({ 
-  selectedAnswers, 
-  customAnswers, 
-  showCustomInput, 
-  answeredQuestions, 
-  handleAnswerSelect, 
-  handleCustomAnswer, 
-  handleCustomInputChange, 
-  handleWorkspaceGenerate, 
-  isGenerating, 
-  slothMessage, 
-  setCurrentView,
-  generatedQuestions
-}: any) => {
-  // Use generated questions if available, otherwise fall back to default questions
-  const questions = generatedQuestions.length > 0 ? 
-    generatedQuestions.map((q: any, index: number) => ({
-      id: `question_${index}`,
-      question: q.question,
-      options: q.options.map((opt: any) => `${opt.text} ${opt.emoji}`),
-      placeholder: 'Enter your custom answer...'
-    })) : [
-    {
-      id: 'audience',
-      question: "Who's this for? 🎯",
-      options: ['My boss 💼', 'My team 👥', 'General public 🌍', 'Just me 😊'],
-      placeholder: 'e.g., college students, dog owners, etc.'
-    },
-    {
-      id: 'tone',
-      question: "What vibe are we going for? 🎭",
-      options: ['Professional 👔', 'Casual & fun 🎉', 'Serious & formal 📋', 'Creative & quirky 🎨'],
-      placeholder: 'e.g., friendly but authoritative, humorous, etc.'
-    },
-    {
-      id: 'length',
-      question: "How long should this be? 📏",
-      options: ['Short & sweet 🍬', 'Medium length 📄', 'Detailed & thorough 📚', 'Whatever works 🤷'],
-      placeholder: 'e.g., 2 paragraphs, bullet points, one page, etc.'
-    },
-    {
-      id: 'goal',
-      question: "What's the main goal here? 🎯",
-      options: ['Inform & educate 📖', 'Persuade & convince 💪', 'Entertain & engage 🎭', 'Solve a problem 🔧'],
-      placeholder: 'e.g., get people to sign up, explain a concept, etc.'
-    },
-    {
-      id: 'extra',
-      question: "Anything else we should know? 🤔",
-      options: ['Include examples 💡', 'Add call-to-action 📢', 'Make it SEO-friendly 🔍', 'Keep it simple 🌿'],
-      placeholder: 'e.g., mention our company values, include pricing, etc.'
-    }
-  ];
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-green-100 via-blue-50 to-purple-100 p-4 pt-20">
-      <div className="max-w-4xl mx-auto">
-        <button 
-          onClick={() => setCurrentView('home')}
-          className="mb-6 p-3 bg-white rounded-full shadow-md hover:shadow-lg transition-all"
-        >
-          <ArrowLeft className="w-5 h-5 text-gray-600" />
-        </button>
-
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-800 mb-2">🦥 5 Lazy Questions</h2>
-          <p className="text-xl text-gray-600">Answer these and we'll do the heavy lifting!</p>
-          <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-4 max-w-md mx-auto mt-4 border border-gray-200">
-            <p className="text-gray-700 italic">"{slothMessage}"</p>
-          </div>
-        </div>
-
-        {/* Progress */}
-        <div className="mb-8">
-          <div className="flex justify-center space-x-2">
-            {questions.map((_, index) => (
-              <div
-                key={index}
-                className={`w-3 h-3 rounded-full transition-colors ${
-                  index < answeredQuestions ? 'bg-green-500' : 'bg-gray-300'
-                }`}
-              />
-            ))}
-          </div>
-          <p className="text-center text-gray-600 mt-2">
-            {answeredQuestions}/5 questions answered
-          </p>
-        </div>
-
-        {/* Questions */}
-        <div className="space-y-6">
-          {questions.map((q) => (
-            <div key={q.id} className="bg-white rounded-3xl shadow-xl p-6 border-2 border-gray-100">
-              <h3 className="text-xl font-bold text-gray-800 mb-4">{q.question}</h3>
-              
-              <div className="grid sm:grid-cols-2 gap-3 mb-4">
-                {q.options.map(option => (
-                  <button
-                    key={option}
-                    onClick={() => handleAnswerSelect(q.id, option)}
-                    className={`p-3 rounded-xl border-2 text-left transition-colors ${
-                      selectedAnswers[q.id] === option
-                        ? 'bg-purple-50 border-purple-300 text-purple-800'
-                        : 'bg-gray-50 hover:bg-gray-100 border-gray-200 hover:border-purple-300 text-gray-700'
-                    }`}
-                  >
-                    {option}
-                  </button>
-                ))}
-              </div>
-
-              <button
-                onClick={() => handleCustomAnswer(q.id)}
-                className={`w-full p-3 rounded-xl border-2 text-left transition-colors ${
-                  selectedAnswers[q.id] === 'custom'
-                    ? 'bg-purple-50 border-purple-300 text-purple-800'
-                    : 'bg-gray-50 hover:bg-gray-100 border-gray-200 hover:border-purple-300 text-gray-700'
-                }`}
-              >
-                ✨ Something else (custom)
-              </button>
-
-              {showCustomInput[q.id] && (
-                <div className="mt-3">
-                  <input
-                    type="text"
-                    value={customAnswers[q.id] || ''}
-                    onChange={(e) => handleCustomInputChange(q.id, e.target.value)}
-                    placeholder={q.placeholder}
-                    className="w-full p-3 border-2 border-purple-300 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 outline-none"
-                  />
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-
-        {/* Generate Button */}
-        <div className="text-center mt-8">
-          <button
-            onClick={handleWorkspaceGenerate}
-            disabled={answeredQuestions < 3 || isGenerating}
-            className="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xl font-bold py-4 px-12 rounded-2xl hover:from-purple-700 hover:to-pink-700 transform hover:scale-105 transition-all shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-          >
-            {isGenerating ? (
-              <div className="flex items-center">
-                <div className="animate-spin mr-3">🦥</div>
-                Crafting Your Masterpiece...
-              </div>
-            ) : (
-              <div className="flex items-center">
-                <Sparkles className="w-6 h-6 mr-3" />
-                Create My Amazing Prompt! ✨
-              </div>
-            )}
-          </button>
-          {answeredQuestions < 3 && (
-            <p className="text-sm text-gray-500 mt-2">Answer at least 3 questions to continue</p>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
 
 // Move ResultsView outside main component
 const ResultsView = ({ 
@@ -357,10 +130,13 @@ const ResultsView = ({
   isGenerating, 
   setCurrentView,
   setUserPrompt,
-  setSelectedAnswers,
-  setCustomAnswers,
-  setShowCustomInput,
-  setAnsweredQuestions,
+  setCurrentRound,
+  setRoundQuestions,
+  setTopicAnswers,
+  setDetectedLanguage,
+  setPreliminaryPrompt,
+  setPreliminaryRound,
+  setPreliminaryScore,
   savedPromptId,
   user,
   availableTweaks
@@ -553,7 +329,7 @@ const ResultsView = ({
                 { name: 'Add more details', emoji: '📝', description: 'Include more specifics' },
                 { name: 'Make it shorter', emoji: '✂️', description: 'Keep it concise' },
                 { name: 'More professional', emoji: '👔', description: 'Formal tone' }
-              ]).map((tweak) => {
+              ]).map((tweak: LazyTweak) => {
                 const displayName = `${tweak.name} ${tweak.emoji}`;
                 return (
                   <button
@@ -614,10 +390,13 @@ const ResultsView = ({
           <button 
             onClick={() => {
               setUserPrompt('');
-              setSelectedAnswers({});
-              setCustomAnswers({});
-              setShowCustomInput({});
-              setAnsweredQuestions(0);
+              setCurrentRound(1);
+              setRoundQuestions([]);
+              setTopicAnswers({});
+              setDetectedLanguage('en');
+              setPreliminaryPrompt('');
+              setPreliminaryRound(1);
+              setPreliminaryScore({laziness: 0, quality: 0});
               setCurrentView('home');
             }}
             className="w-full py-4 bg-gradient-to-r from-green-400 to-blue-500 text-white text-lg font-bold rounded-2xl hover:from-green-500 hover:to-blue-600 transform hover:scale-105 transition-all shadow-lg"
@@ -654,28 +433,34 @@ const ResultsView = ({
   );
 };
 
-// Iterative Question View component
-const IterativeQuestionView = ({
+// Preliminary Result View component
+const PreliminaryResultView = ({
   userPrompt,
-  currentQuestion,
-  isComplete,
-  completionMessage,
-  conversationHistory,
+  preliminaryPrompt,
+  currentRound,
+  detectedLanguage,
   isGenerating,
-  onAnswer,
-  onComplete,
-  setCurrentView
+  onContinue,
+  onFinish,
+  setCurrentView,
+  slothMessage,
+  lazinessScore,
+  qualityScore
 }: {
   userPrompt: string;
-  currentQuestion: IterativeQuestion | null;
-  isComplete: boolean;
-  completionMessage: string;
-  conversationHistory: ConversationEntry[];
+  preliminaryPrompt: string;
+  currentRound: number;
+  detectedLanguage: string;
   isGenerating: boolean;
-  onAnswer: (answer: string, customText?: string) => void;
-  onComplete: () => void;
+  onContinue: () => void;
+  onFinish: () => void;
   setCurrentView: (view: string) => void;
+  slothMessage: string;
+  lazinessScore: number;
+  qualityScore: number;
 }) => {
+  const isUkrainian = detectedLanguage === 'uk';
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-100 via-blue-50 to-purple-100 p-4 pt-20">
       <div className="max-w-4xl mx-auto">
@@ -688,76 +473,350 @@ const IterativeQuestionView = ({
 
         {/* Header */}
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-800 mb-2">🦥 One Question at a Time</h2>
-          <p className="text-xl text-gray-600">Let me understand what you need...</p>
-        </div>
-
-        {/* Progress indicator */}
-        <div className="mb-8">
-          <div className="flex justify-center items-center space-x-2">
-            {conversationHistory.map((_, index) => (
-              <div
-                key={index}
-                className="w-3 h-3 rounded-full bg-green-500"
-              />
-            ))}
-            {!isComplete && currentQuestion && (
-              <div className="w-3 h-3 rounded-full bg-gray-300 animate-pulse" />
-            )}
-          </div>
-          <p className="text-center text-gray-600 mt-2">
-            {conversationHistory.length} question{conversationHistory.length !== 1 ? 's' : ''} answered
+          <h2 className="text-3xl font-bold text-gray-800 mb-2">
+            🎉 {isUkrainian ? `Попередній результат після раунду ${currentRound}!` : `Preliminary Result After Round ${currentRound}!`}
+          </h2>
+          <p className="text-xl text-gray-600">
+            {isUkrainian ? 'Ваш промпт вже готовий до використання!' : 'Your prompt is ready to use!'}
           </p>
+          <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-4 max-w-md mx-auto mt-4 border border-gray-200">
+            <p className="text-gray-700 italic">"{slothMessage}"</p>
+          </div>
         </div>
 
-        {/* Question or Completion */}
-        <AnimatePresence mode="wait">
-          {isComplete ? (
-            <CompletionConfirmation
-              key="completion"
-              message={completionMessage}
-              onConfirm={onComplete}
-              isLoading={isGenerating}
-            />
-          ) : (
-            currentQuestion && (
-              <QuestionCard
-                key={currentQuestion.question}
-                question={currentQuestion.question}
-                options={currentQuestion.options}
-                allowCustom={currentQuestion.allow_custom}
-                onAnswer={onAnswer}
-                isLoading={isGenerating}
-              />
-            )
-          )}
-        </AnimatePresence>
-
-        {/* Conversation History */}
-        {conversationHistory.length > 0 && (
-          <div className="mt-8 max-w-2xl mx-auto">
-            <h3 className="text-lg font-semibold text-gray-700 mb-4">Our conversation so far:</h3>
-            <div className="space-y-3">
-              {conversationHistory.map((entry, index) => (
-                <div key={index} className="bg-white/60 backdrop-blur-sm rounded-xl p-4 border border-gray-200">
-                  <p className="text-sm font-medium text-gray-700 mb-1">Q: {entry.question}</p>
-                  <p className="text-sm text-gray-600">
-                    A: {entry.answer}
-                    {entry.custom_text && ` (${entry.custom_text})`}
-                  </p>
-                </div>
-              ))}
+        {/* Scores */}
+        <div className="grid md:grid-cols-2 gap-4 mb-8 max-w-2xl mx-auto">
+          <div className="bg-white rounded-xl p-4 shadow-md border border-gray-200">
+            <div className="flex items-center justify-between">
+              <span className="text-gray-600">{isUkrainian ? 'Оцінка лінощів' : 'Laziness Score'}</span>
+              <span className="text-2xl font-bold text-green-600">{lazinessScore}/10 🦥</span>
             </div>
           </div>
-        )}
+          <div className="bg-white rounded-xl p-4 shadow-md border border-gray-200">
+            <div className="flex items-center justify-between">
+              <span className="text-gray-600">{isUkrainian ? 'Якість промпту' : 'Prompt Quality'}</span>
+              <span className="text-2xl font-bold text-blue-600">{qualityScore}/10 ⭐</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Preliminary Prompt */}
+        <div className="bg-white rounded-3xl shadow-xl p-8 border-2 border-gray-100 mb-8">
+          <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
+            <Sparkles className="w-6 h-6 mr-2 text-yellow-500" />
+            {isUkrainian ? 'Ваш промпт' : 'Your Prompt'}
+          </h3>
+          <div className="bg-gray-50 rounded-2xl p-6 font-mono text-sm leading-relaxed max-h-96 overflow-y-auto border-2 border-gray-200">
+            {preliminaryPrompt}
+          </div>
+          <div className="mt-4 flex justify-center">
+            <button 
+              onClick={() => navigator.clipboard.writeText(preliminaryPrompt)}
+              className="flex items-center space-x-2 bg-green-500 text-white px-4 py-2 rounded-xl hover:bg-green-600 transition-colors font-medium shadow-md"
+            >
+              <Copy className="w-4 h-4" />
+              <span>{isUkrainian ? 'Копіювати' : 'Copy'}</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Choice Options */}
+        <div className="bg-white rounded-3xl shadow-xl p-8 border-2 border-gray-100">
+          <h3 className="text-xl font-bold text-gray-800 mb-2 text-center">
+            {isUkrainian ? 'Що далі?' : 'What next?'}
+          </h3>
+          <p className="text-gray-600 text-center mb-6">
+            {currentRound < 3 ? 
+              (isUkrainian ? 
+                `Ви можете продовжити з раундом ${currentRound + 1} для покращення промпту або зупинитися зараз.` : 
+                `You can continue with round ${currentRound + 1} to improve the prompt or stop here.`)
+              :
+              (isUkrainian ? 
+                'Це був останній раунд! Ви отримали найкращий можливий результат.' : 
+                'This was the final round! You got the best possible result.')
+            }
+          </p>
+
+          <div className="grid md:grid-cols-2 gap-4">
+            <button
+              onClick={onFinish}
+              className="p-6 rounded-xl border-2 transition-all hover:shadow-lg bg-green-50 hover:bg-green-100 border-green-300 text-green-800"
+            >
+              <div className="text-center">
+                <span className="text-3xl mb-2 block">✅</span>
+                <span className="text-lg font-semibold block mb-1">
+                  {isUkrainian ? 'Використати цей промпт' : 'Use this prompt'}
+                </span>
+                <span className="text-sm text-green-600">
+                  {isUkrainian ? 'Я задоволений результатом' : "I'm happy with this result"}
+                </span>
+              </div>
+            </button>
+
+            {currentRound < 3 && (
+              <button
+                onClick={onContinue}
+                className="p-6 rounded-xl border-2 transition-all hover:shadow-lg bg-blue-50 hover:bg-blue-100 border-blue-300 text-blue-800"
+              >
+                <div className="text-center">
+                  <span className="text-3xl mb-2 block">🎯</span>
+                  <span className="text-lg font-semibold block mb-1">
+                    {isUkrainian ? `Продовжити з раундом ${currentRound + 1}` : `Continue to Round ${currentRound + 1}`}
+                  </span>
+                  <span className="text-sm text-blue-600">
+                    {isUkrainian ? 'Покращити промпт далі' : 'Improve the prompt further'}
+                  </span>
+                </div>
+              </button>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Loading Overlay */}
       {isGenerating && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-3xl p-8 max-w-md w-full mx-4 text-center shadow-2xl">
-            <h3 className="text-2xl font-bold text-gray-800 mb-2">Sloth is thinking... 💭</h3>
-            <p className="text-gray-600 mb-4">Analyzing your answer...</p>
+            <h3 className="text-2xl font-bold text-gray-800 mb-2">
+              {isUkrainian ? 'Обробка...' : 'Processing...'}
+            </h3>
+            <p className="text-gray-600 mb-4">{slothMessage}</p>
+            <div className="flex justify-center space-x-2">
+              {['💤', '😴', '🦥'].map((emoji, i) => (
+                <div
+                  key={i}
+                  className={`text-2xl transition-all duration-500 ${
+                    Math.floor(Date.now() / 500) % 3 === i ? 'animate-bounce' : 'opacity-50'
+                  }`}
+                >
+                  {emoji}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Three Round View component
+const ThreeRoundView = ({
+  userPrompt,
+  currentRound,
+  roundQuestions,
+  topicAnswers,
+  detectedLanguage,
+  isGenerating,
+  onRoundComplete,
+  setCurrentView,
+  slothMessage
+}: {
+  userPrompt: string;
+  currentRound: number;
+  roundQuestions: RoundQuestion[];
+  topicAnswers: Record<string, string>;
+  detectedLanguage: string;
+  isGenerating: boolean;
+  onRoundComplete: (answers: Record<string, string>) => void;
+  setCurrentView: (view: string) => void;
+  slothMessage: string;
+}) => {
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [currentAnswers, setCurrentAnswers] = useState<Record<string, string>>({});
+  const [showCustomInput, setShowCustomInput] = useState(false);
+  const [customAnswer, setCustomAnswer] = useState('');
+
+  // Reset question index when round changes or questions change
+  React.useEffect(() => {
+    setCurrentQuestionIndex(0);
+    setCurrentAnswers({});
+    setShowCustomInput(false);
+    setCustomAnswer('');
+  }, [currentRound, roundQuestions]);
+
+  const currentQuestion = roundQuestions[currentQuestionIndex];
+  const isLastQuestion = currentQuestionIndex === roundQuestions.length - 1;
+  const isUkrainian = detectedLanguage === 'uk';
+
+  const handleAnswerSelect = (answer: string) => {
+    if (!currentQuestion) return;
+    
+    const updatedAnswers = {
+      ...currentAnswers,
+      [currentQuestion.topic]: answer
+    };
+    setCurrentAnswers(updatedAnswers);
+    
+    // Move to next question after a short delay
+    setTimeout(() => {
+      if (isLastQuestion) {
+        // Submit all answers for this round
+        onRoundComplete(updatedAnswers);
+        setCurrentAnswers({});
+        setCurrentQuestionIndex(0);
+      } else {
+        setCurrentQuestionIndex(prev => prev + 1);
+      }
+      setShowCustomInput(false);
+      setCustomAnswer('');
+    }, 500);
+  };
+
+  const handleCustomAnswerSubmit = () => {
+    if (!currentQuestion || !customAnswer.trim()) return;
+    handleAnswerSelect(customAnswer.trim());
+  };
+
+  const handleCustomInputToggle = () => {
+    setShowCustomInput(!showCustomInput);
+    setCustomAnswer('');
+  };
+
+  if (!currentQuestion) {
+    return <div>Loading questions...</div>;
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-green-100 via-blue-50 to-purple-100 p-4 pt-20">
+      <div className="max-w-4xl mx-auto">
+        <button 
+          onClick={() => setCurrentView('home')}
+          className="mb-6 p-3 bg-white rounded-full shadow-md hover:shadow-lg transition-all"
+        >
+          <ArrowLeft className="w-5 h-5 text-gray-600" />
+        </button>
+
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold text-gray-800 mb-2">
+            🎯 {isUkrainian ? `Раунд ${currentRound} з 3` : `Round ${currentRound} of 3`}
+          </h2>
+          <p className="text-xl text-gray-600">
+            {isUkrainian ? 'Одне питання за раз!' : 'One question at a time!'}
+          </p>
+          <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-4 max-w-md mx-auto mt-4 border border-gray-200">
+            <p className="text-gray-700 italic">"{slothMessage}"</p>
+          </div>
+        </div>
+
+        {/* Progress */}
+        <div className="mb-8">
+          <div className="flex justify-center space-x-4 mb-4">
+            {[1, 2, 3].map((round) => (
+              <div
+                key={round}
+                className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold transition-all ${
+                  round < currentRound ? 'bg-green-500' : 
+                  round === currentRound ? 'bg-blue-500' : 'bg-gray-300'
+                }`}
+              >
+                {round < currentRound ? '✓' : round}
+              </div>
+            ))}
+          </div>
+          <div className="flex justify-center space-x-2 mb-2">
+            {roundQuestions.map((_, index) => (
+              <div
+                key={index}
+                className={`w-3 h-3 rounded-full transition-colors ${
+                  index < currentQuestionIndex ? 'bg-green-500' : 
+                  index === currentQuestionIndex ? 'bg-blue-500' : 'bg-gray-300'
+                }`}
+              />
+            ))}
+          </div>
+          <p className="text-center text-gray-600">
+            {isUkrainian ? `Питання ${currentQuestionIndex + 1} з ${roundQuestions.length}` : 
+             `Question ${currentQuestionIndex + 1} of ${roundQuestions.length}`}
+          </p>
+        </div>
+
+        {/* Current Question */}
+        <div className="max-w-2xl mx-auto">
+          <div className="bg-white rounded-3xl shadow-xl p-8 border-2 border-gray-100 mb-6">
+            <h3 className="text-2xl font-bold text-gray-800 mb-2 text-center">
+              {currentQuestion.topic === 'output_format' ? (isUkrainian ? 'Формат виводу' : 'Output Format') : 
+               currentQuestion.topic === 'goal' ? (isUkrainian ? 'Мета' : 'Goal') :
+               currentQuestion.topic === 'role' ? (isUkrainian ? 'Роль' : 'Role') :
+               currentQuestion.topic === 'context' ? (isUkrainian ? 'Контекст' : 'Context') :
+               currentQuestion.topic === 'warning' ? (isUkrainian ? 'Попередження' : 'Warning') :
+               currentQuestion.topic === 'example' ? (isUkrainian ? 'Приклади' : 'Examples') :
+               currentQuestion.topic}
+            </h3>
+            <p className="text-xl text-gray-700 mb-6 text-center">{currentQuestion.question}</p>
+            
+            {/* Answer Options */}
+            <div className="space-y-4 mb-6">
+              {currentQuestion.options.map((option) => (
+                <button
+                  key={option.text}
+                  onClick={() => handleAnswerSelect(option.text)}
+                  className="w-full p-4 rounded-xl border-2 text-left transition-all hover:shadow-md bg-gray-50 hover:bg-gray-100 border-gray-200 hover:border-purple-300 text-gray-700"
+                >
+                  <span className="text-2xl mr-3">{option.emoji}</span>
+                  <span className="text-lg">{option.text}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Custom Answer Option */}
+            <div className="border-t border-gray-200 pt-6">
+              <button
+                onClick={handleCustomInputToggle}
+                className={`w-full p-4 rounded-xl border-2 text-left transition-all ${
+                  showCustomInput
+                    ? 'bg-purple-50 border-purple-300 text-purple-800'
+                    : 'bg-gray-50 hover:bg-gray-100 border-gray-200 hover:border-purple-300 text-gray-700'
+                }`}
+              >
+                <span className="text-2xl mr-3">✨</span>
+                <span className="text-lg">
+                  {isUkrainian ? 'Власна відповідь' : 'Custom answer'}
+                </span>
+              </button>
+
+              {showCustomInput && (
+                <div className="mt-4 space-y-3">
+                  <input
+                    type="text"
+                    value={customAnswer}
+                    onChange={(e) => setCustomAnswer(e.target.value)}
+                    placeholder={isUkrainian ? 'Введіть свою відповідь...' : 'Enter your custom answer...'}
+                    className="w-full p-3 border-2 border-purple-300 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 outline-none"
+                    onKeyPress={(e) => e.key === 'Enter' && handleCustomAnswerSubmit()}
+                    autoFocus
+                  />
+                  <div className="flex space-x-3">
+                    <button
+                      onClick={handleCustomAnswerSubmit}
+                      disabled={!customAnswer.trim()}
+                      className="flex-1 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isUkrainian ? 'Підтвердити' : 'Submit'}
+                    </button>
+                    <button
+                      onClick={handleCustomInputToggle}
+                      className="flex-1 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400"
+                    >
+                      {isUkrainian ? 'Скасувати' : 'Cancel'}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Loading Overlay */}
+      {isGenerating && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-3xl p-8 max-w-md w-full mx-4 text-center shadow-2xl">
+            <h3 className="text-2xl font-bold text-gray-800 mb-2">
+              {isUkrainian ? 'Ледача створює магію... 💭' : 'Sloth is thinking... 💭'}
+            </h3>
+            <p className="text-gray-600 mb-4">{slothMessage}</p>
             
             <div className="flex justify-center space-x-2">
               {['💤', '😴', '🦥'].map((emoji, i) => (
@@ -778,35 +837,32 @@ const IterativeQuestionView = ({
   );
 };
 
+
 const SlothPromptBoost = () => {
   const { user } = useAuth();
   const [currentView, setCurrentView] = useState('home');
   const [userPrompt, setUserPrompt] = useState('');
-  const [selectedLaziness, setSelectedLaziness] = useState('super-lazy');
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedPrompt, setGeneratedPrompt] = useState('');
-  const [slothMessage, setSlothMessage] = useState("Hey there, fellow lazy human! 🦥");
-  const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>({});
-  const [customAnswers, setCustomAnswers] = useState<Record<string, string>>({});
-  const [showCustomInput, setShowCustomInput] = useState<Record<string, boolean>>({});
-  const [answeredQuestions, setAnsweredQuestions] = useState(0);
+  const [slothMessage, setSlothMessage] = useState("Let's create something amazing! 🦥");
   const [selectedTweak, setSelectedTweak] = useState<string | null>(null);
   const [promptCount, setPromptCount] = useState(0);
-  const [saving, setSaving] = useState(false);
   const [savedPromptId, setSavedPromptId] = useState<string | null>(null);
   const [notification, setNotification] = useState<{
     message: string;
     type: 'success' | 'error' | 'warning' | 'info';
     isVisible: boolean;
   }>({ message: '', type: 'info', isVisible: false });
-  const [generatedQuestions, setGeneratedQuestions] = useState<any[]>([]);
   const [availableTweaks, setAvailableTweaks] = useState<LazyTweak[]>([]);
   
-  // Iterative mode state
-  const [conversationHistory, setConversationHistory] = useState<ConversationEntry[]>([]);
-  const [currentIterativeQuestion, setCurrentIterativeQuestion] = useState<IterativeQuestion | null>(null);
-  const [isIterativeComplete, setIsIterativeComplete] = useState(false);
-  const [iterativeCompletionMessage, setIterativeCompletionMessage] = useState('');
+  // Three-round mode state
+  const [currentRound, setCurrentRound] = useState<number>(1);
+  const [roundQuestions, setRoundQuestions] = useState<RoundQuestion[]>([]);
+  const [topicAnswers, setTopicAnswers] = useState<Record<string, string>>({});
+  const [detectedLanguage, setDetectedLanguage] = useState<string>('en');
+  const [preliminaryPrompt, setPreliminaryPrompt] = useState<string>('');
+  const [preliminaryRound, setPreliminaryRound] = useState<number>(1);
+  const [preliminaryScore, setPreliminaryScore] = useState<{laziness: number; quality: number}>({laziness: 0, quality: 0});
   
   const promptTextareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -857,7 +913,6 @@ const SlothPromptBoost = () => {
   const handleSavePrompt = async () => {
     if (!user || !generatedPrompt) return;
 
-    setSaving(true);
     try {
       const promptData = {
         originalInput: userPrompt,
@@ -885,227 +940,57 @@ const SlothPromptBoost = () => {
       console.error('Failed to save prompt:', error);
       showNotification('Failed to save prompt. Please try again.', 'error');
     } finally {
-      setSaving(false);
     }
   };
 
   const handleLoadPrompt = (prompt: PromptWithVersions) => {
     setUserPrompt(prompt.original_input);
     setGeneratedPrompt(prompt.generated_prompt);
-    setSelectedLaziness(prompt.laziness_level === 'super_duper' ? 'super-lazy' : 'regular-lazy');
     setSavedPromptId(prompt.parent_id || prompt.id);
-    
-    // Load questions data if available
-    if (prompt.questions_data) {
-      setSelectedAnswers(prompt.questions_data.selectedAnswers || {});
-      setCustomAnswers(prompt.questions_data.customAnswers || {});
-    }
-    
     setCurrentView('results');
     showNotification('Prompt loaded successfully!', 'success');
   };
 
-  // Handler functions
-  const handleAnswerSelect = (questionId: string, answer: string) => {
-    const wasAlreadyAnswered = !!selectedAnswers[questionId];
-    setSelectedAnswers(prev => ({
-      ...prev,
-      [questionId]: answer
-    }));
-    if (answer !== 'custom') {
-      setShowCustomInput(prev => ({
-        ...prev,
-        [questionId]: false
-      }));
-    }
-    
-    // Update answered questions count
-    if (!wasAlreadyAnswered) {
-      setAnsweredQuestions(prev => prev + 1);
-    }
-  };
-
-  const handleCustomAnswer = (questionId: string) => {
-    setSelectedAnswers(prev => ({
-      ...prev,
-      [questionId]: 'custom'
-    }));
-    setShowCustomInput(prev => ({
-      ...prev,
-      [questionId]: true
-    }));
-  };
-
-  const handleCustomInputChange = (questionId: string, value: string) => {
-    setCustomAnswers(prev => ({
-      ...prev,
-      [questionId]: value
-    }));
-  };
 
   const handleGenerate = async () => {
     if (!userPrompt.trim()) return;
     
-    // Check laziness level to determine flow
-    if (selectedLaziness === 'regular-lazy') {
-      // Generate questions first, then go to workspace
-      setIsGenerating(true);
-      setSlothMessage("Generating smart questions for you... 🤔");
-      
-      try {
-        const request: EnhancePromptRequest = {
-          user_input: userPrompt,
-          mode: 'regular_lazy'
-        };
-
-        const { data, error } = await promptService.enhancePrompt(request);
-        
-        if (error) {
-          throw new Error(error.message || 'Failed to generate questions');
-        }
-
-        if (data?.questions && data.questions.length > 0) {
-          // Store the generated questions for use in workspace
-          setGeneratedQuestions(data.questions);
-          setCurrentView('workspace');
-          setSlothMessage("Answer these questions and we'll make magic happen! ✨");
-        } else {
-          throw new Error('No questions received');
-        }
-      } catch (error) {
-        console.error('Failed to generate questions:', error);
-        showNotification('Failed to generate questions. Please try again.', 'error');
-        setSlothMessage("Hmm, even sloths need coffee sometimes. Try again? ☕");
-      } finally {
-        setIsGenerating(false);
-      }
-      return;
-    } else if (selectedLaziness === 'iterative-lazy') {
-      // Start iterative questioning
-      setIsGenerating(true);
-      setSlothMessage("Let me ask you one simple question at a time... 🎯");
-      setConversationHistory([]); // Reset conversation
-      setIsIterativeComplete(false);
-      setCurrentIterativeQuestion(null);
-      
-      try {
-        const request: EnhancePromptRequest = {
-          user_input: userPrompt,
-          mode: 'iterative'
-        };
-
-        const { data, error } = await promptService.enhancePrompt(request);
-        
-        if (error) {
-          throw new Error(error.message || 'Failed to generate question');
-        }
-
-        if (data?.question) {
-          setCurrentIterativeQuestion(data.question);
-          setCurrentView('iterative');
-        } else {
-          throw new Error('No question received');
-        }
-      } catch (error) {
-        console.error('Failed to start iterative questions:', error);
-        showNotification('Failed to start questions. Please try again.', 'error');
-        setSlothMessage("Hmm, even sloths need coffee sometimes. Try again? ☕");
-      } finally {
-        setIsGenerating(false);
-      }
-      return;
-    }
-    
-    // Super lazy mode - generate directly
+    // Start three-round questioning
     setIsGenerating(true);
-    setSavedPromptId(null); // Reset for new prompt
-    setSlothMessage("Sprinkling some lazy magic... ✨");
+    setSlothMessage("Let me ask you 6 smart questions to create the perfect prompt... 🎯");
+    setCurrentRound(1);
+    setTopicAnswers({});
     
     try {
       const request: EnhancePromptRequest = {
         user_input: userPrompt,
-        mode: 'super_lazy'
+        mode: 'three_round',
+        round: 1
       };
 
       const { data, error } = await promptService.enhancePrompt(request);
       
       if (error) {
-        throw new Error(error.message || 'Failed to enhance prompt');
+        throw new Error(error.message || 'Failed to generate questions');
       }
 
-      if (data?.enhanced_prompt) {
-        setGeneratedPrompt(data.enhanced_prompt);
-        setAvailableTweaks(data.lazy_tweaks || []);
-        setCurrentView('results');
-        setSlothMessage(`Boom! Your lazy input just became a masterpiece! 🎉 
-        
-Laziness Score: ${data.laziness_score}/10 | Quality: ${data.prompt_quality}/10
-Template: ${data.template_used}`);
+      if (data?.round_questions) {
+        setRoundQuestions(data.round_questions);
+        setDetectedLanguage(data.detected_language || 'en');
+        setCurrentView('three-round');
+        setSlothMessage("Round 1: Let's clarify the basics! 🎯");
       } else {
-        throw new Error('No enhanced prompt received');
+        throw new Error('No questions received');
       }
     } catch (error) {
-      console.error('Failed to enhance prompt:', error);
-      showNotification('Failed to enhance prompt. Please try again.', 'error');
-      setSlothMessage("Oops! Even sloths sometimes trip on branches. Try again? 🦥");
+      console.error('Failed to start questions:', error);
+      showNotification('Failed to start questions. Please try again.', 'error');
+      setSlothMessage("Hmm, even sloths need coffee sometimes. Try again? ☕");
     } finally {
       setIsGenerating(false);
     }
   };
 
-  const handleWorkspaceGenerate = async () => {
-    if (answeredQuestions < 3) return;
-    
-    setIsGenerating(true);
-    setSavedPromptId(null); // Reset for new prompt
-    setSlothMessage("Combining your answers with our lazy genius... 🧠");
-    
-    try {
-      // Prepare the context with user answers
-      const answers = Object.entries(selectedAnswers).map(([key, value]) => {
-        if (value === 'custom') {
-          return `${key}: ${customAnswers[key] || ''}`;
-        }
-        return `${key}: ${value}`;
-      }).reduce((acc, answer) => {
-        acc[answer.split(': ')[0]] = answer.split(': ')[1];
-        return acc;
-      }, {} as any);
-
-      const request: EnhancePromptRequest = {
-        user_input: userPrompt,
-        mode: 'super_lazy', // Use super_lazy mode but with context
-        context: {
-          questions: generatedQuestions,
-          answers: answers
-        }
-      };
-
-      const { data, error } = await promptService.enhancePrompt(request);
-      
-      if (error) {
-        throw new Error(error.message || 'Failed to enhance prompt');
-      }
-
-      if (data?.enhanced_prompt) {
-        setGeneratedPrompt(data.enhanced_prompt);
-        setAvailableTweaks(data.lazy_tweaks || []);
-        setCurrentView('results');
-        setSlothMessage(`Your custom masterpiece is ready! We really outdid ourselves this time! 🏆
-        
-Laziness Score: ${data.laziness_score}/10 | Quality: ${data.prompt_quality}/10
-Template: ${data.template_used}`);
-      } else {
-        throw new Error('No enhanced prompt received');
-      }
-    } catch (error) {
-      console.error('Failed to enhance prompt:', error);
-      showNotification('Failed to enhance prompt. Please try again.', 'error');
-      setSlothMessage("Oops! Even sloths sometimes trip on branches. Try again? 🦥");
-    } finally {
-      setIsGenerating(false);
-    }
-  };
 
   const handleTweakConfirm = () => {
     if (!selectedTweak) return;
@@ -1134,94 +1019,101 @@ Template: ${data.template_used}`);
     }, 2000);
   };
 
-  // Iterative mode handlers
-  const handleIterativeAnswer = async (answer: string, customText?: string) => {
-    if (!currentIterativeQuestion) return;
+
+  const handleRoundComplete = async (answers: Record<string, string>) => {
+    const updatedAnswers = { ...topicAnswers, ...answers };
+    setTopicAnswers(updatedAnswers);
     
-    // Add to conversation history
-    const newEntry: ConversationEntry = {
-      question: currentIterativeQuestion.question,
-      answer,
-      custom_text: customText
-    };
-    
-    const updatedHistory = [...conversationHistory, newEntry];
-    setConversationHistory(updatedHistory);
-    
-    // Get next question or check if complete
+    // First, generate preliminary prompt to show to user
     setIsGenerating(true);
-    setSlothMessage("Processing your answer... 🤔");
+    setSlothMessage(`Generating your preliminary prompt... 🎨`);
     
     try {
-      const request: EnhancePromptRequest = {
+      const preliminaryRequest: EnhancePromptRequest = {
         user_input: userPrompt,
-        mode: 'iterative',
-        conversation_history: updatedHistory
+        mode: 'three_round',
+        round: currentRound,
+        topic_answers: updatedAnswers,
+        user_language: detectedLanguage,
+        generate_preliminary: true
       };
 
-      const { data, error } = await promptService.enhancePrompt(request);
+      const { data: preliminaryData, error: preliminaryError } = await promptService.enhancePrompt(preliminaryRequest);
       
-      if (error) {
-        throw new Error(error.message || 'Failed to process answer');
+      if (preliminaryError) {
+        throw new Error(preliminaryError.message || 'Failed to generate preliminary prompt');
       }
 
-      if (data?.is_complete) {
-        // AI has enough information
-        setIsIterativeComplete(true);
-        setIterativeCompletionMessage(data.completion_message || "I've got everything I need! 🎉");
-        setCurrentIterativeQuestion(null);
-      } else if (data?.question) {
-        // Continue with next question
-        setCurrentIterativeQuestion(data.question);
-      } else {
-        throw new Error('Invalid response from server');
+      if (preliminaryData?.preliminary_prompt) {
+        // Show preliminary result view
+        setCurrentView('preliminary-result');
+        setPreliminaryPrompt(preliminaryData.preliminary_prompt);
+        setPreliminaryRound(currentRound);
+        setPreliminaryScore({
+          laziness: preliminaryData.laziness_score,
+          quality: preliminaryData.prompt_quality
+        });
       }
     } catch (error) {
-      console.error('Failed to process answer:', error);
-      showNotification('Failed to process your answer. Please try again.', 'error');
+      console.error('Failed to generate preliminary prompt:', error);
+      showNotification('Failed to generate preliminary result. Please try again.', 'error');
     } finally {
       setIsGenerating(false);
     }
   };
 
-  const handleIterativeComplete = async () => {
-    // Generate final prompt using conversation history
-    setIsGenerating(true);
-    setSavedPromptId(null);
-    setSlothMessage("Creating your masterpiece from our conversation... 🎨");
-    
-    try {
-      const request: EnhancePromptRequest = {
-        user_input: userPrompt,
-        mode: 'iterative',
-        conversation_history: conversationHistory,
-        generate_final: true
-      };
-
-      const { data, error } = await promptService.enhancePrompt(request);
+  const handleContinueToNextRound = async () => {
+    if (currentRound < 3) {
+      // Move to next round
+      const nextRound = currentRound + 1;
+      setCurrentRound(nextRound);
+      setIsGenerating(true);
+      setSlothMessage(`Round ${nextRound}: Let's get more specific! 🎯`);
       
-      if (error) {
-        throw new Error(error.message || 'Failed to generate prompt');
-      }
+      try {
+        const request: EnhancePromptRequest = {
+          user_input: userPrompt,
+          mode: 'three_round',
+          round: nextRound,
+          topic_answers: topicAnswers,
+          user_language: detectedLanguage
+        };
 
-      if (data?.enhanced_prompt) {
-        setGeneratedPrompt(data.enhanced_prompt);
-        setAvailableTweaks(data.lazy_tweaks || []);
-        setCurrentView('results');
-        setSlothMessage(`Perfect! I crafted the perfect prompt based on our conversation! 🎉
+        const { data, error } = await promptService.enhancePrompt(request);
         
-Laziness Score: ${data.laziness_score}/10 | Quality: ${data.prompt_quality}/10
-Template: ${data.template_used}`);
-      } else {
-        throw new Error('No enhanced prompt received');
+        if (error) {
+          throw new Error(error.message || 'Failed to generate next round questions');
+        }
+
+        if (data?.round_questions) {
+          setRoundQuestions(data.round_questions);
+          setCurrentView('three-round');
+          setSlothMessage(`Round ${nextRound}: ${nextRound === 2 ? 'Getting deeper!' : 'Final details!'} 🎯`);
+        } else {
+          throw new Error('No questions received');
+        }
+      } catch (error) {
+        console.error('Failed to get next round questions:', error);
+        showNotification('Failed to continue. Please try again.', 'error');
+      } finally {
+        setIsGenerating(false);
       }
-    } catch (error) {
-      console.error('Failed to generate final prompt:', error);
-      showNotification('Failed to generate prompt. Please try again.', 'error');
-    } finally {
-      setIsGenerating(false);
+    } else {
+      handleFinishWithPreliminary();
     }
   };
+
+  const handleFinishWithPreliminary = () => {
+    // Use the preliminary prompt as the final result
+    setGeneratedPrompt(preliminaryPrompt);
+    setAvailableTweaks([]);
+    setCurrentView('results');
+    setSavedPromptId(null);
+    setSlothMessage(`Great! Your prompt is ready after ${preliminaryRound} round${preliminaryRound > 1 ? 's' : ''}! 🎉
+    
+Laziness Score: ${preliminaryScore.laziness}/10 | Quality: ${preliminaryScore.quality}/10`);
+  };
+
 
   return (
     <div className="font-sans">
@@ -1245,36 +1137,10 @@ Template: ${data.template_used}`);
         <HomeView 
           userPrompt={userPrompt}
           setUserPrompt={setUserPrompt}
-          selectedLaziness={selectedLaziness}
-          setSelectedLaziness={setSelectedLaziness}
-          slothMessage={slothMessage}
-          setSlothMessage={setSlothMessage}
           handleGenerate={handleGenerate}
           isGenerating={isGenerating}
           promptTextareaRef={promptTextareaRef}
           randomQuote={randomQuote}
-        />
-      )}
-      {currentView === 'workspace' && (
-        <WorkspaceView 
-          userPrompt={userPrompt}
-          selectedLaziness={selectedLaziness}
-          selectedAnswers={selectedAnswers}
-          setSelectedAnswers={setSelectedAnswers}
-          customAnswers={customAnswers}
-          setCustomAnswers={setCustomAnswers}
-          showCustomInput={showCustomInput}
-          setShowCustomInput={setShowCustomInput}
-          answeredQuestions={answeredQuestions}
-          setAnsweredQuestions={setAnsweredQuestions}
-          handleAnswerSelect={handleAnswerSelect}
-          handleCustomAnswer={handleCustomAnswer}
-          handleCustomInputChange={handleCustomInputChange}
-          handleWorkspaceGenerate={handleWorkspaceGenerate}
-          isGenerating={isGenerating}
-          slothMessage={slothMessage}
-          setCurrentView={setCurrentView}
-          generatedQuestions={generatedQuestions}
         />
       )}
       {currentView === 'results' && (
@@ -1288,26 +1154,44 @@ Template: ${data.template_used}`);
           isGenerating={isGenerating}
           setCurrentView={setCurrentView}
           setUserPrompt={setUserPrompt}
-          setSelectedAnswers={setSelectedAnswers}
-          setCustomAnswers={setCustomAnswers}
-          setShowCustomInput={setShowCustomInput}
-          setAnsweredQuestions={setAnsweredQuestions}
+          setCurrentRound={setCurrentRound}
+          setRoundQuestions={setRoundQuestions}
+          setTopicAnswers={setTopicAnswers}
+          setDetectedLanguage={setDetectedLanguage}
+          setPreliminaryPrompt={setPreliminaryPrompt}
+          setPreliminaryRound={setPreliminaryRound}
+          setPreliminaryScore={setPreliminaryScore}
           savedPromptId={savedPromptId}
           user={user}
           availableTweaks={availableTweaks}
         />
       )}
-      {currentView === 'iterative' && (
-        <IterativeQuestionView
+      {currentView === 'three-round' && (
+        <ThreeRoundView
           userPrompt={userPrompt}
-          currentQuestion={currentIterativeQuestion}
-          isComplete={isIterativeComplete}
-          completionMessage={iterativeCompletionMessage}
-          conversationHistory={conversationHistory}
+          currentRound={currentRound}
+          roundQuestions={roundQuestions}
+          topicAnswers={topicAnswers}
+          detectedLanguage={detectedLanguage}
           isGenerating={isGenerating}
-          onAnswer={handleIterativeAnswer}
-          onComplete={handleIterativeComplete}
+          onRoundComplete={handleRoundComplete}
           setCurrentView={setCurrentView}
+          slothMessage={slothMessage}
+        />
+      )}
+      {currentView === 'preliminary-result' && (
+        <PreliminaryResultView
+          userPrompt={userPrompt}
+          preliminaryPrompt={preliminaryPrompt}
+          currentRound={preliminaryRound}
+          detectedLanguage={detectedLanguage}
+          isGenerating={isGenerating}
+          onContinue={handleContinueToNextRound}
+          onFinish={handleFinishWithPreliminary}
+          setCurrentView={setCurrentView}
+          slothMessage={slothMessage}
+          lazinessScore={preliminaryScore.laziness}
+          qualityScore={preliminaryScore.quality}
         />
       )}
       {currentView === 'history' && (

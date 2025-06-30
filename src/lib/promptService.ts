@@ -20,32 +20,11 @@ export interface PromptWithVersions extends Prompt {
 
 export interface EnhancePromptRequest {
   user_input: string
-  mode: 'super_lazy' | 'regular_lazy' | 'iterative'
-  context?: any
-  conversation_history?: ConversationEntry[]
-  generate_final?: boolean
-}
-
-export interface ConversationEntry {
-  question: string
-  answer: string
-  custom_text?: string
-}
-
-export interface IterativeQuestion {
-  question: string
-  options: Array<{text: string; emoji: string}>
-  allow_custom: boolean
-}
-
-export interface QuestionOption {
-  text: string
-  emoji: string
-}
-
-export interface Question {
-  question: string
-  options: QuestionOption[]
+  mode: 'three_round'
+  round?: number
+  topic_answers?: Record<string, string>
+  user_language?: string
+  generate_preliminary?: boolean
 }
 
 export interface LazyTweak {
@@ -54,17 +33,35 @@ export interface LazyTweak {
   description: string
 }
 
+export interface RoundQuestion {
+  topic: string
+  question: string
+  options: Array<{
+    text: string
+    emoji: string
+  }>
+}
+
 export interface EnhancedPromptResponse {
   enhanced_prompt?: string
-  questions?: Question[]
   lazy_tweaks?: LazyTweak[]
   laziness_score: number
   prompt_quality: number
   template_used: string
-  // New fields for iterative mode
-  question?: IterativeQuestion
-  is_complete?: boolean
-  completion_message?: string
+  // Fields for three-round mode
+  round_questions?: Array<{
+    topic: string
+    question: string
+    options: Array<{
+      text: string
+      emoji: string
+    }>
+  }>
+  current_round?: number
+  total_rounds?: number
+  detected_language?: string
+  // Field for preliminary results
+  preliminary_prompt?: string
 }
 
 export const promptService = {
