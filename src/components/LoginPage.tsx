@@ -37,9 +37,9 @@ export default function LoginPage() {
         <div className="bg-white rounded-2xl shadow-xl p-8">
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
-              SlothBoost
+              WizardBoost
             </h1>
-            <p className="text-gray-600">The laziest way to create amazing prompts</p>
+            <p className="text-gray-600">Where wisdom meets your creative prompts</p>
           </div>
 
           {!emailSent ? (
@@ -118,7 +118,7 @@ export default function LoginPage() {
 
         <div className="text-center mt-6 text-sm text-gray-600">
           <p>
-            By signing in, you agree to use this tool for lazy prompt generation only.
+            By signing in, you agree to use this tool for magical prompt generation only.
           </p>
         </div>
       </div>

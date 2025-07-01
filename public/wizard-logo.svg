@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <!-- Background circle with gradient -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#a855f7;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#7c3aed;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="wizardGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2563eb;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="beardGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#e5e7eb;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#d1d5db;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="starGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#fbbf24;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f59e0b;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background circle -->
+  <circle cx="32" cy="32" r="30" fill="url(#bgGradient)" stroke="#6d28d9" stroke-width="2"/>
+  
+  <!-- Wizard robe body -->
+  <path d="M20 48 L20 38 Q20 35 23 35 L41 35 Q44 35 44 38 L44 48 Z" fill="url(#wizardGradient)"/>
+  
+  <!-- Wizard head -->
+  <circle cx="32" cy="28" r="8" fill="#fdbcb4"/>
+  
+  <!-- Wizard hat -->
+  <path d="M32 8 L24 22 L40 22 Z" fill="url(#wizardGradient)"/>
+  <path d="M23 22 L41 22 L41 24 Q32 26 23 24 Z" fill="#1e40af"/>
+  
+  <!-- Hat stars -->
+  <path d="M32 13 L33 15 L35 15 L33.5 16.5 L34.5 18.5 L32 17 L29.5 18.5 L30.5 16.5 L29 15 L31 15 Z" fill="url(#starGradient)"/>
+  
+  <!-- Eyes (wise and twinkling) -->
+  <circle cx="29" cy="27" r="1.5" fill="#1f2937"/>
+  <circle cx="35" cy="27" r="1.5" fill="#1f2937"/>
+  <circle cx="29.5" cy="26.5" r="0.5" fill="#ffffff"/>
+  <circle cx="35.5" cy="26.5" r="0.5" fill="#ffffff"/>
+  
+  <!-- Nose -->
+  <path d="M32 29 L31 30 L33 30 Z" fill="#f0abab"/>
+  
+  <!-- Beard -->
+  <path d="M26 32 Q32 36 38 32 L38 40 Q32 44 26 40 Z" fill="url(#beardGradient)"/>
+  <path d="M28 33 Q32 35 36 33" stroke="#9ca3af" stroke-width="0.5" fill="none"/>
+  <path d="M28 36 Q32 38 36 36" stroke="#9ca3af" stroke-width="0.5" fill="none"/>
+  <path d="M29 39 Q32 41 35 39" stroke="#9ca3af" stroke-width="0.5" fill="none"/>
+  
+  <!-- Wand in hand -->
+  <rect x="44" y="35" width="2" height="12" fill="#8b5a2b" transform="rotate(20 45 41)"/>
+  <circle cx="48" cy="33" r="2" fill="url(#starGradient)"/>
+  
+  <!-- Magic sparkles around -->
+  <path d="M12 18 L14 20 L12 22 L10 20 Z" fill="url(#starGradient)"/>
+  <path d="M52 20 L54 22 L52 24 L50 22 Z" fill="url(#starGradient)"/>
+  <circle cx="18" cy="40" r="1.5" fill="#fbbf24"/>
+  <circle cx="46" cy="45" r="1.5" fill="#f59e0b"/>
+  <path d="M8 30 L9 32 L8 34 L7 32 Z" fill="#fbbf24"/>
+  <path d="M56 36 L57 38 L56 40 L55 38 Z" fill="#f59e0b"/>
+  
+  <!-- Magical aura -->
+  <circle cx="32" cy="32" r="28" fill="none" stroke="url(#starGradient)" stroke-width="0.5" opacity="0.6" stroke-dasharray="2 4"/>
+</svg>

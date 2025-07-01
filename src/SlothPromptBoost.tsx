@@ -6,12 +6,12 @@ import ProfileDropdown from './components/ProfileDropdown';
 import PromptHistory from './components/PromptHistory';
 import NotificationToast from './components/NotificationToast';
 
-const slothQuotes = [
-  "Why work hard when you can work smart? 🦥",
-  "Slow and steady wins the prompt race! 🐌",
-  "Being lazy is an art form, and you're an artist! 🎨",
-  "Let me handle the thinking while you handle the relaxing 💤",
-  "Efficiency is just organized laziness! ✨"
+const wizardQuotes = [
+  "Why struggle when magic can guide your way? 🧙‍♂️",
+  "Every great prompt begins with a wise question! ✨",
+  "Let my wisdom transform your thoughts into power! 🔮",
+  "I shall conjure the perfect words for you! 📜",
+  "Ancient knowledge meets modern brilliance! 🌟"
 ];
 
 // Header component for the app
@@ -19,9 +19,9 @@ const Header = ({ promptCount, onShowHistory }: { promptCount: number; onShowHis
   <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200 px-4 py-3 sticky top-0 z-40">
     <div className="max-w-4xl mx-auto flex justify-between items-center">
       <div className="flex items-center space-x-2">
-        <span className="text-2xl">🦥</span>
+        <span className="text-2xl">🧙‍♂️</span>
         <h1 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-          SlothBoost
+          WizardBoost
         </h1>
       </div>
       <ProfileDropdown promptCount={promptCount} onShowHistory={onShowHistory} />
@@ -44,9 +44,9 @@ const HomeView = ({
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-800 mb-2">
-            🦥 SlothBoost
+            🧙‍♂️ WizardBoost
           </h1>
-          <p className="text-xl text-gray-600 mb-4">The smartest way to create amazing prompts</p>
+          <p className="text-xl text-gray-600 mb-4">Where wisdom meets your creative prompts</p>
           <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-4 max-w-md mx-auto border border-gray-200">
             <p className="text-gray-700 italic">"{randomQuote}"</p>
           </div>
@@ -102,7 +102,7 @@ const HomeView = ({
           >
             {isGenerating ? (
               <div className="flex items-center">
-                <div className="animate-spin mr-3">🦥</div>
+                <div className="animate-spin mr-3">🧙‍♂️</div>
                 Getting ready...
               </div>
             ) : (
@@ -123,7 +123,7 @@ const HomeView = ({
 const ResultsView = ({ 
   userPrompt, 
   generatedPrompt, 
-  slothMessage, 
+  wizardMessage, 
   selectedTweak, 
   setSelectedTweak, 
   handleTweakConfirm, 
@@ -193,18 +193,18 @@ const ResultsView = ({
       </button>
 
       <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-gray-800 mb-2">🦥 Ta-da! 🎉</h2>
-        <p className="text-xl text-gray-600">Your lazy prompt just became a masterpiece!</p>
+        <h2 className="text-3xl font-bold text-gray-800 mb-2">🧙‍♂️ Behold! 🎉</h2>
+        <p className="text-xl text-gray-600">Your prompt has been enchanted with wisdom!</p>
       </div>
 
-      {/* Sloth Celebration */}
+      {/* Wizard Celebration */}
       <div className="bg-white rounded-3xl p-6 shadow-lg mb-8 relative max-w-2xl mx-auto">
         <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 w-8 h-8 bg-white rounded-full"></div>
         <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-4 h-4 bg-white rounded-full"></div>
         <div className="text-center">
-          <p className="text-lg text-gray-700 mb-2">{slothMessage}</p>
+          <p className="text-lg text-gray-700 mb-2">{wizardMessage}</p>
           <p className="text-sm text-gray-500 italic">
-            "We just turned 'meh' into 'WOW!' without breaking a sweat! 🦥✨"
+            "Witness the transformation of ordinary words into extraordinary magic! 🧙‍♂️✨"
           </p>
         </div>
       </div>
@@ -321,7 +321,7 @@ const ResultsView = ({
           <div className="bg-white rounded-3xl shadow-xl p-6">
             <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
               <RefreshCw className="w-5 h-5 mr-2 text-purple-500" />
-              Lazy Tweaks 🔧
+              Magical Enhancements 🔧
             </h4>
             <div className="space-y-3">
               {(availableTweaks && availableTweaks.length > 0 ? availableTweaks : [
@@ -369,19 +369,19 @@ const ResultsView = ({
 
           {/* Stats */}
           <div className="bg-gradient-to-br from-purple-100 to-pink-100 rounded-3xl p-6 border-2 border-purple-200">
-            <h4 className="text-lg font-bold text-gray-800 mb-4 text-center">Sloth Stats 📊</h4>
+            <h4 className="text-lg font-bold text-gray-800 mb-4 text-center">Wizard Stats 📊</h4>
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Laziness Score</span>
-                <span className="font-bold text-green-600">Perfect! 🦥</span>
+                <span className="text-sm text-gray-600">Wisdom Level</span>
+                <span className="font-bold text-green-600">Legendary! 🧙‍♂️</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600">Prompt Quality</span>
                 <span className="font-bold text-blue-600">+500% ⚡</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Effort Used</span>
-                <span className="font-bold text-purple-600">Nearly Zero 😴</span>
+                <span className="text-sm text-gray-600">Magic Used</span>
+                <span className="font-bold text-purple-600">Infinite Power 🌟</span>
               </div>
             </div>
           </div>
@@ -401,7 +401,7 @@ const ResultsView = ({
             }}
             className="w-full py-4 bg-gradient-to-r from-green-400 to-blue-500 text-white text-lg font-bold rounded-2xl hover:from-green-500 hover:to-blue-600 transform hover:scale-105 transition-all shadow-lg"
           >
-            Let's Be Lazy Again! 🦥✨
+            Seek More Wisdom! 🧙‍♂️✨
           </button>
         </div>
       </div>
@@ -412,7 +412,7 @@ const ResultsView = ({
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div className="bg-white rounded-3xl p-8 max-w-md w-full mx-4 text-center shadow-2xl">
           <h3 className="text-2xl font-bold text-gray-800 mb-2">Sloth is thinking... 💭</h3>
-          <p className="text-gray-600 mb-4">{slothMessage}</p>
+          <p className="text-gray-600 mb-4">{wizardMessage}</p>
           
           <div className="flex justify-center space-x-2">
             {['💤', '😴', '🦥'].map((emoji, i) => (
@@ -443,7 +443,7 @@ const PreliminaryResultView = ({
   onContinue,
   onFinish,
   setCurrentView,
-  slothMessage,
+  wizardMessage,
   lazinessScore,
   qualityScore
 }: {
@@ -455,7 +455,7 @@ const PreliminaryResultView = ({
   onContinue: () => void;
   onFinish: () => void;
   setCurrentView: (view: string) => void;
-  slothMessage: string;
+  wizardMessage: string;
   lazinessScore: number;
   qualityScore: number;
 }) => {
@@ -480,7 +480,7 @@ const PreliminaryResultView = ({
             {isUkrainian ? 'Ваш промпт вже готовий до використання!' : 'Your prompt is ready to use!'}
           </p>
           <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-4 max-w-md mx-auto mt-4 border border-gray-200">
-            <p className="text-gray-700 italic">"{slothMessage}"</p>
+            <p className="text-gray-700 italic">"{wizardMessage}"</p>
           </div>
         </div>
 
@@ -580,9 +580,9 @@ const PreliminaryResultView = ({
             <h3 className="text-2xl font-bold text-gray-800 mb-2">
               {isUkrainian ? 'Обробка...' : 'Processing...'}
             </h3>
-            <p className="text-gray-600 mb-4">{slothMessage}</p>
+            <p className="text-gray-600 mb-4">{wizardMessage}</p>
             <div className="flex justify-center space-x-2">
-              {['💤', '😴', '🦥'].map((emoji, i) => (
+              {['✨', '🔮', '🧙‍♂️'].map((emoji, i) => (
                 <div
                   key={i}
                   className={`text-2xl transition-all duration-500 ${
@@ -610,7 +610,7 @@ const ThreeRoundView = ({
   isGenerating,
   onRoundComplete,
   setCurrentView,
-  slothMessage
+  wizardMessage
 }: {
   userPrompt: string;
   currentRound: number;
@@ -620,7 +620,7 @@ const ThreeRoundView = ({
   isGenerating: boolean;
   onRoundComplete: (answers: Record<string, string>) => void;
   setCurrentView: (view: string) => void;
-  slothMessage: string;
+  wizardMessage: string;
 }) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [currentAnswers, setCurrentAnswers] = useState<Record<string, string>>({});
@@ -696,7 +696,7 @@ const ThreeRoundView = ({
             {isUkrainian ? 'Одне питання за раз!' : 'One question at a time!'}
           </p>
           <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-4 max-w-md mx-auto mt-4 border border-gray-200">
-            <p className="text-gray-700 italic">"{slothMessage}"</p>
+            <p className="text-gray-700 italic">"{wizardMessage}"</p>
           </div>
         </div>
 
@@ -814,12 +814,12 @@ const ThreeRoundView = ({
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-3xl p-8 max-w-md w-full mx-4 text-center shadow-2xl">
             <h3 className="text-2xl font-bold text-gray-800 mb-2">
-              {isUkrainian ? 'Ледача створює магію... 💭' : 'Sloth is thinking... 💭'}
+              {isUkrainian ? 'Чарівник розмірковує... 💭' : 'The Wizard is contemplating... 💭'}
             </h3>
-            <p className="text-gray-600 mb-4">{slothMessage}</p>
+            <p className="text-gray-600 mb-4">{wizardMessage}</p>
             
             <div className="flex justify-center space-x-2">
-              {['💤', '😴', '🦥'].map((emoji, i) => (
+              {['✨', '🔮', '🧙‍♂️'].map((emoji, i) => (
                 <div
                   key={i}
                   className={`text-2xl transition-all duration-500 ${
@@ -844,7 +844,7 @@ const SlothPromptBoost = () => {
   const [userPrompt, setUserPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedPrompt, setGeneratedPrompt] = useState('');
-  const [slothMessage, setSlothMessage] = useState("Let's create something amazing! 🦥");
+  const [wizardMessage, setWizardMessage] = useState("Let us weave magic into your words! 🧙‍♂️");
   const [selectedTweak, setSelectedTweak] = useState<string | null>(null);
   const [promptCount, setPromptCount] = useState(0);
   const [savedPromptId, setSavedPromptId] = useState<string | null>(null);
@@ -889,7 +889,7 @@ const SlothPromptBoost = () => {
 
   // Memoize the random quote to prevent re-renders
   const randomQuote = useMemo(() => {
-    return slothQuotes[Math.floor(Math.random() * slothQuotes.length)];
+    return wizardQuotes[Math.floor(Math.random() * wizardQuotes.length)];
   }, []); // Empty dependency array means it's calculated once
 
   const loadPromptCount = async () => {
@@ -917,10 +917,9 @@ const SlothPromptBoost = () => {
       const promptData = {
         originalInput: userPrompt,
         generatedPrompt,
-        lazinessLevel: selectedLaziness === 'super-lazy' ? 'super_duper' as const : 'regular' as const,
-        questionsData: Object.keys(selectedAnswers).length > 0 ? {
-          selectedAnswers,
-          customAnswers
+        lazinessLevel: 'regular' as const,
+        questionsData: Object.keys(topicAnswers).length > 0 ? {
+          topicAnswers
         } : null,
         parentId: savedPromptId, // For refinements
         version: savedPromptId ? undefined : 1 // Will be calculated by service for refinements
@@ -957,7 +956,7 @@ const SlothPromptBoost = () => {
     
     // Start three-round questioning
     setIsGenerating(true);
-    setSlothMessage("Let me ask you 6 smart questions to create the perfect prompt... 🎯");
+    setWizardMessage("Let me ask you 6 smart questions to create the perfect prompt... 🎯");
     setCurrentRound(1);
     setTopicAnswers({});
     
@@ -971,21 +970,24 @@ const SlothPromptBoost = () => {
       const { data, error } = await promptService.enhancePrompt(request);
       
       if (error) {
-        throw new Error(error.message || 'Failed to generate questions');
+        const errorMessage = typeof error.message === 'string' 
+          ? error.message 
+          : (error.message ? JSON.stringify(error.message) : 'Failed to generate questions');
+        throw new Error(errorMessage);
       }
 
       if (data?.round_questions) {
         setRoundQuestions(data.round_questions);
         setDetectedLanguage(data.detected_language || 'en');
         setCurrentView('three-round');
-        setSlothMessage("Round 1: Let's clarify the basics! 🎯");
+        setWizardMessage("Round 1: Let's clarify the basics! 🎯");
       } else {
         throw new Error('No questions received');
       }
     } catch (error) {
       console.error('Failed to start questions:', error);
       showNotification('Failed to start questions. Please try again.', 'error');
-      setSlothMessage("Hmm, even sloths need coffee sometimes. Try again? ☕");
+      setWizardMessage("Hmm, even sloths need coffee sometimes. Try again? ☕");
     } finally {
       setIsGenerating(false);
     }
@@ -996,7 +998,7 @@ const SlothPromptBoost = () => {
     if (!selectedTweak) return;
     
     setIsGenerating(true);
-    setSlothMessage(`Making it ${selectedTweak.toLowerCase()}... because you asked so nicely! 😊`);
+    setWizardMessage(`Making it ${selectedTweak.toLowerCase()}... because you asked so nicely! 😊`);
     
     // Simulate API call for tweaking
     setTimeout(() => {
@@ -1015,7 +1017,7 @@ const SlothPromptBoost = () => {
       setGeneratedPrompt(tweakedPrompt);
       setIsGenerating(false);
       setSelectedTweak(null);
-      setSlothMessage("Boom! Your prompt just got even lazier! 🎉");
+      setWizardMessage("Boom! Your prompt just got even lazier! 🎉");
     }, 2000);
   };
 
@@ -1026,7 +1028,7 @@ const SlothPromptBoost = () => {
     
     // First, generate preliminary prompt to show to user
     setIsGenerating(true);
-    setSlothMessage(`Generating your preliminary prompt... 🎨`);
+    setWizardMessage(`Generating your preliminary prompt... 🎨`);
     
     try {
       const preliminaryRequest: EnhancePromptRequest = {
@@ -1041,7 +1043,10 @@ const SlothPromptBoost = () => {
       const { data: preliminaryData, error: preliminaryError } = await promptService.enhancePrompt(preliminaryRequest);
       
       if (preliminaryError) {
-        throw new Error(preliminaryError.message || 'Failed to generate preliminary prompt');
+        const errorMessage = typeof preliminaryError.message === 'string' 
+          ? preliminaryError.message 
+          : (preliminaryError.message ? JSON.stringify(preliminaryError.message) : 'Failed to generate preliminary prompt');
+        throw new Error(errorMessage);
       }
 
       if (preliminaryData?.preliminary_prompt) {
@@ -1068,7 +1073,7 @@ const SlothPromptBoost = () => {
       const nextRound = currentRound + 1;
       setCurrentRound(nextRound);
       setIsGenerating(true);
-      setSlothMessage(`Round ${nextRound}: Let's get more specific! 🎯`);
+      setWizardMessage(`Round ${nextRound}: Let's get more specific! 🎯`);
       
       try {
         const request: EnhancePromptRequest = {
@@ -1082,13 +1087,16 @@ const SlothPromptBoost = () => {
         const { data, error } = await promptService.enhancePrompt(request);
         
         if (error) {
-          throw new Error(error.message || 'Failed to generate next round questions');
+          const errorMessage = typeof error.message === 'string' 
+            ? error.message 
+            : (error.message ? JSON.stringify(error.message) : 'Failed to generate next round questions');
+          throw new Error(errorMessage);
         }
 
         if (data?.round_questions) {
           setRoundQuestions(data.round_questions);
           setCurrentView('three-round');
-          setSlothMessage(`Round ${nextRound}: ${nextRound === 2 ? 'Getting deeper!' : 'Final details!'} 🎯`);
+          setWizardMessage(`Round ${nextRound}: ${nextRound === 2 ? 'Getting deeper!' : 'Final details!'} 🎯`);
         } else {
           throw new Error('No questions received');
         }
@@ -1109,7 +1117,7 @@ const SlothPromptBoost = () => {
     setAvailableTweaks([]);
     setCurrentView('results');
     setSavedPromptId(null);
-    setSlothMessage(`Great! Your prompt is ready after ${preliminaryRound} round${preliminaryRound > 1 ? 's' : ''}! 🎉
+    setWizardMessage(`Great! Your prompt is ready after ${preliminaryRound} round${preliminaryRound > 1 ? 's' : ''}! 🎉
     
 Laziness Score: ${preliminaryScore.laziness}/10 | Quality: ${preliminaryScore.quality}/10`);
   };
@@ -1147,7 +1155,7 @@ Laziness Score: ${preliminaryScore.laziness}/10 | Quality: ${preliminaryScore.qu
         <ResultsView 
           userPrompt={userPrompt}
           generatedPrompt={generatedPrompt}
-          slothMessage={slothMessage}
+          wizardMessage={wizardMessage}
           selectedTweak={selectedTweak}
           setSelectedTweak={setSelectedTweak}
           handleTweakConfirm={handleTweakConfirm}
@@ -1176,7 +1184,7 @@ Laziness Score: ${preliminaryScore.laziness}/10 | Quality: ${preliminaryScore.qu
           isGenerating={isGenerating}
           onRoundComplete={handleRoundComplete}
           setCurrentView={setCurrentView}
-          slothMessage={slothMessage}
+          wizardMessage={wizardMessage}
         />
       )}
       {currentView === 'preliminary-result' && (
@@ -1189,7 +1197,7 @@ Laziness Score: ${preliminaryScore.laziness}/10 | Quality: ${preliminaryScore.qu
           onContinue={handleContinueToNextRound}
           onFinish={handleFinishWithPreliminary}
           setCurrentView={setCurrentView}
-          slothMessage={slothMessage}
+          wizardMessage={wizardMessage}
           lazinessScore={preliminaryScore.laziness}
           qualityScore={preliminaryScore.quality}
         />

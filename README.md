@@ -1,6 +1,6 @@
-# SlothBoost 🦥
+# WizardBoost 🧙‍♂️
 
-The laziest way to create amazing prompts!
+Where wisdom meets your creative prompts!
 
 ## Deployment
 

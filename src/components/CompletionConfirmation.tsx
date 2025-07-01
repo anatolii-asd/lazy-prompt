@@ -41,12 +41,12 @@ const CompletionConfirmation = ({
           className="space-y-4"
         >
           <p className="text-lg text-gray-600">
-            Time to work my lazy magic and create an amazing prompt for you! 
+            Time to conjure magical wisdom and create an amazing prompt for you! 
           </p>
           
           <div className="flex items-center justify-center space-x-2 text-purple-600">
-            <span className="text-4xl animate-pulse">🦥</span>
-            <span className="text-sm font-medium">The sloth is ready to amaze you!</span>
+            <span className="text-4xl animate-pulse">🧙‍♂️</span>
+            <span className="text-sm font-medium">The wizard is ready to enchant your words!</span>
           </div>
 
           <motion.button
@@ -58,7 +58,7 @@ const CompletionConfirmation = ({
           >
             {isLoading ? (
               <div className="flex items-center justify-center">
-                <div className="animate-spin mr-3">🦥</div>
+                <div className="animate-spin mr-3">🧙‍♂️</div>
                 Creating Your Masterpiece...
               </div>
             ) : (
@@ -70,7 +70,7 @@ const CompletionConfirmation = ({
           </motion.button>
 
           <p className="text-sm text-gray-500 mt-3">
-            This will only take a moment of supreme laziness...
+            This will only take a moment of mystical contemplation...
           </p>
         </motion.div>
       </div>

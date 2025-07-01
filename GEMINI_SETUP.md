@@ -1,6 +1,6 @@
 # Gemini API Integration Setup
 
-This guide will help you set up the Gemini API integration for SlothBoost prompt enhancement.
+This guide will help you set up the Gemini API integration for WizardBoost prompt enhancement.
 
 ## Prerequisites
 
