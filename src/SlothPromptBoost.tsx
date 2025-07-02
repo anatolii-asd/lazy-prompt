@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Copy, RefreshCw, ArrowLeft } from 'lucide-react';
 import { useAuth } from './contexts/AuthContext';
 import { promptService, PromptWithVersions, EnhancePromptRequest, LazyTweak, RoundQuestion, AnalyzePromptResponse, QuestionItem } from './lib/promptService';
@@ -861,7 +862,139 @@ const DiffViewer = ({ originalText, newText }: { originalText: string; newText: 
   );
 };
 
-// Dynamic question form component
+// Single question component with sliding animations
+const SingleQuestionForm = ({ 
+  question,
+  questionKey,
+  answer,
+  questionNumber,
+  totalQuestions,
+  onAnswerChange,
+  onConfirm,
+  onSkip,
+  isSubmitting
+}: {
+  question: QuestionItem;
+  questionKey: string;
+  answer: any;
+  questionNumber: number;
+  totalQuestions: number;
+  onAnswerChange: (answer: any) => void;
+  onConfirm: () => void;
+  onSkip: () => void;
+  isSubmitting: boolean;
+}) => {
+  const [localAnswer, setLocalAnswer] = useState(answer || '');
+
+  useEffect(() => {
+    setLocalAnswer(answer || '');
+  }, [answer]);
+
+  const handleLocalChange = (value: any) => {
+    setLocalAnswer(value);
+    onAnswerChange(value);
+  };
+
+  const handleConfirm = () => {
+    onConfirm();
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: 50 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -50 }}
+      transition={{ duration: 0.3 }}
+      className="w-full"
+    >
+      <div className="bg-white rounded-lg border border-gray-200 p-6">
+        {/* Progress indicator */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="text-sm text-gray-500">
+            Question {questionNumber} of {totalQuestions}
+          </div>
+          <div className="flex space-x-1">
+            {Array.from({ length: totalQuestions }, (_, i) => (
+              <div
+                key={i}
+                className={`w-2 h-2 rounded-full ${
+                  i < questionNumber ? 'bg-purple-600' : 
+                  i === questionNumber - 1 ? 'bg-purple-400' : 'bg-gray-200'
+                }`}
+              />
+            ))}
+          </div>
+        </div>
+
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">{question.question}</h3>
+        
+        {question.type === 'textarea' && (
+          <textarea
+            value={localAnswer}
+            onChange={(e) => handleLocalChange(e.target.value)}
+            className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-y min-h-[120px] text-gray-700"
+            placeholder="Enter your answer..."
+          />
+        )}
+        
+        {question.type === 'text' && (
+          <input
+            type="text"
+            value={localAnswer}
+            onChange={(e) => handleLocalChange(e.target.value)}
+            className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-700"
+            placeholder="Enter your answer..."
+          />
+        )}
+        
+        {question.type === 'select' && question.options && (
+          <div className="space-y-3">
+            {question.options.map((option, optionIndex) => (
+              <label key={optionIndex} className="flex items-center space-x-3 cursor-pointer p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                <input
+                  type="radio"
+                  name={questionKey}
+                  value={option}
+                  checked={localAnswer === option}
+                  onChange={(e) => handleLocalChange(e.target.value)}
+                  className="text-purple-600 focus:ring-purple-500"
+                />
+                <span className="text-gray-700">{option}</span>
+              </label>
+            ))}
+          </div>
+        )}
+
+        {/* Action buttons */}
+        <div className="flex space-x-3 mt-6">
+          <button
+            onClick={onSkip}
+            disabled={isSubmitting}
+            className="flex-1 bg-gray-200 text-gray-700 py-3 px-6 rounded-lg font-medium hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+          >
+            Skip Question
+          </button>
+          <button
+            onClick={handleConfirm}
+            disabled={isSubmitting}
+            className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 px-6 rounded-lg font-medium hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+          >
+            {isSubmitting ? (
+              <div className="flex items-center justify-center space-x-2">
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                <span>Processing...</span>
+              </div>
+            ) : (
+              'Confirm Answer'
+            )}
+          </button>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+// Dynamic question form component with one-by-one display
 const DynamicQuestionForm = ({ 
   questions, 
   answers, 
@@ -882,73 +1015,116 @@ const DynamicQuestionForm = ({
     ...questions.format || []
   ];
 
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [answeredQuestions, setAnsweredQuestions] = useState<Set<number>>(new Set());
+
   const getQuestionKey = (question: QuestionItem, index: number) => 
     `question_${index}_${question.question.substring(0, 20).replace(/\s+/g, '_')}`;
 
+  const currentQuestion = allQuestions[currentQuestionIndex];
+  const currentQuestionKey = currentQuestion ? getQuestionKey(currentQuestion, currentQuestionIndex) : '';
+  const currentAnswer = answers[currentQuestionKey] || '';
+
+  const handleAnswerChange = (answer: any) => {
+    onAnswerChange(currentQuestionKey, answer);
+  };
+
+  const handleConfirm = () => {
+    if (currentQuestion) {
+      setAnsweredQuestions(prev => new Set([...prev, currentQuestionIndex]));
+      
+      if (currentQuestionIndex < allQuestions.length - 1) {
+        setCurrentQuestionIndex(prev => prev + 1);
+      } else {
+        // All questions answered, proceed to improvement
+        onSubmit();
+      }
+    }
+  };
+
+  const handleSkip = () => {
+    if (currentQuestionIndex < allQuestions.length - 1) {
+      setCurrentQuestionIndex(prev => prev + 1);
+    } else {
+      // Last question, proceed to improvement even if skipped
+      onSubmit();
+    }
+  };
+
+  const handlePrevious = () => {
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex(prev => prev - 1);
+    }
+  };
+
+  if (!currentQuestion) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-gray-600 mb-4">No questions available</p>
+        <button
+          onClick={onSubmit}
+          className="bg-gradient-to-r from-purple-600 to-pink-600 text-white py-2 px-6 rounded-lg"
+        >
+          Continue
+        </button>
+      </div>
+    );
+  }
+
+  const isLastQuestion = currentQuestionIndex === allQuestions.length - 1;
+
   return (
     <div className="space-y-6">
-      {allQuestions.map((question, index) => {
-        const questionKey = getQuestionKey(question, index);
-        const currentAnswer = answers[questionKey] || '';
+      {/* Navigation */}
+      <div className="flex items-center justify-between">
+        <button
+          onClick={handlePrevious}
+          disabled={currentQuestionIndex === 0}
+          className="flex items-center space-x-2 text-gray-600 hover:text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Previous</span>
+        </button>
         
-        return (
-          <div key={questionKey} className="bg-white rounded-lg border border-gray-200 p-4">
-            <h3 className="font-medium text-gray-800 mb-3">{question.question}</h3>
-            
-            {question.type === 'textarea' && (
-              <textarea
-                value={currentAnswer}
-                onChange={(e) => onAnswerChange(questionKey, e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-y min-h-[100px]"
-                placeholder="Enter your answer..."
-              />
-            )}
-            
-            {question.type === 'text' && (
-              <input
-                type="text"
-                value={currentAnswer}
-                onChange={(e) => onAnswerChange(questionKey, e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                placeholder="Enter your answer..."
-              />
-            )}
-            
-            {question.type === 'select' && question.options && (
-              <div className="space-y-2">
-                {question.options.map((option, optionIndex) => (
-                  <label key={optionIndex} className="flex items-center space-x-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name={questionKey}
-                      value={option}
-                      checked={currentAnswer === option}
-                      onChange={(e) => onAnswerChange(questionKey, e.target.value)}
-                      className="text-purple-600"
-                    />
-                    <span className="text-gray-700">{option}</span>
-                  </label>
-                ))}
-              </div>
-            )}
+        <div className="text-sm text-gray-500">
+          {answeredQuestions.size} of {allQuestions.length} questions answered
+        </div>
+      </div>
+
+      {/* Question display with animation */}
+      <AnimatePresence mode="wait">
+        <SingleQuestionForm
+          key={currentQuestionIndex}
+          question={currentQuestion}
+          questionKey={currentQuestionKey}
+          answer={currentAnswer}
+          questionNumber={currentQuestionIndex + 1}
+          totalQuestions={allQuestions.length}
+          onAnswerChange={handleAnswerChange}
+          onConfirm={handleConfirm}
+          onSkip={handleSkip}
+          isSubmitting={isSubmitting && isLastQuestion}
+        />
+      </AnimatePresence>
+
+      {/* Summary of answers */}
+      {answeredQuestions.size > 0 && (
+        <div className="bg-gray-50 rounded-lg p-4">
+          <h4 className="font-medium text-gray-800 mb-2">Answered Questions:</h4>
+          <div className="text-sm text-gray-600">
+            {Array.from(answeredQuestions).map(index => {
+              const q = allQuestions[index];
+              const qKey = getQuestionKey(q, index);
+              const ans = answers[qKey];
+              return ans ? (
+                <div key={index} className="mb-1">
+                  <span className="font-medium">Q{index + 1}:</span> {typeof ans === 'string' && ans.length > 50 ? ans.substring(0, 50) + '...' : ans}
+                </div>
+              ) : null;
+            })}
           </div>
-        );
-      })}
-      
-      <button
-        onClick={onSubmit}
-        disabled={isSubmitting}
-        className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 px-6 rounded-lg font-medium hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-      >
-        {isSubmitting ? (
-          <div className="flex items-center justify-center space-x-2">
-            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-            <span>Improving...</span>
-          </div>
-        ) : (
-          'Improve My Prompt'
-        )}
-      </button>
+        </div>
+      )}
     </div>
   );
 };
