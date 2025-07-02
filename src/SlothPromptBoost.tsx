@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Sparkles, Zap, Copy, RefreshCw, ArrowLeft } from 'lucide-react';
 import { useAuth } from './contexts/AuthContext';
-import { promptService, PromptWithVersions, EnhancePromptRequest, LazyTweak, RoundQuestion } from './lib/promptService';
+import { promptService, PromptWithVersions, EnhancePromptRequest, LazyTweak, RoundQuestion, AnalyzePromptResponse, QuestionItem, ImprovePromptResponse } from './lib/promptService';
 import ProfileDropdown from './components/ProfileDropdown';
 import PromptHistory from './components/PromptHistory';
 import NotificationToast from './components/NotificationToast';
@@ -837,6 +837,318 @@ const ThreeRoundView = ({
   );
 };
 
+// Simple diff viewer component
+const DiffViewer = ({ originalText, newText }: { originalText: string; newText: string }) => {
+  const lines1 = originalText.split('\n');
+  const lines2 = newText.split('\n');
+  
+  return (
+    <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+      <h4 className="font-semibold text-gray-700 mb-2">Changes Made:</h4>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <div className="text-sm text-red-600 font-medium mb-1">Previous Version</div>
+          <div className="bg-red-50 border border-red-200 rounded p-2 text-sm whitespace-pre-wrap">
+            {originalText}
+          </div>
+        </div>
+        <div>
+          <div className="text-sm text-green-600 font-medium mb-1">Improved Version</div>
+          <div className="bg-green-50 border border-green-200 rounded p-2 text-sm whitespace-pre-wrap">
+            {newText}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Dynamic question form component
+const DynamicQuestionForm = ({ 
+  questions, 
+  answers, 
+  onAnswerChange, 
+  onSubmit, 
+  isSubmitting 
+}: {
+  questions: Record<string, QuestionItem[]>;
+  answers: Record<string, any>;
+  onAnswerChange: (questionKey: string, answer: any) => void;
+  onSubmit: () => void;
+  isSubmitting: boolean;
+}) => {
+  const allQuestions = [
+    ...questions.goals || [],
+    ...questions.context || [],
+    ...questions.specificity || [],
+    ...questions.format || []
+  ];
+
+  const getQuestionKey = (question: QuestionItem, index: number) => 
+    `question_${index}_${question.question.substring(0, 20).replace(/\s+/g, '_')}`;
+
+  return (
+    <div className="space-y-6">
+      {allQuestions.map((question, index) => {
+        const questionKey = getQuestionKey(question, index);
+        const currentAnswer = answers[questionKey] || '';
+        
+        return (
+          <div key={questionKey} className="bg-white rounded-lg border border-gray-200 p-4">
+            <h3 className="font-medium text-gray-800 mb-3">{question.question}</h3>
+            
+            {question.type === 'textarea' && (
+              <textarea
+                value={currentAnswer}
+                onChange={(e) => onAnswerChange(questionKey, e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-y min-h-[100px]"
+                placeholder="Enter your answer..."
+              />
+            )}
+            
+            {question.type === 'text' && (
+              <input
+                type="text"
+                value={currentAnswer}
+                onChange={(e) => onAnswerChange(questionKey, e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                placeholder="Enter your answer..."
+              />
+            )}
+            
+            {question.type === 'select' && question.options && (
+              <div className="space-y-2">
+                {question.options.map((option, optionIndex) => (
+                  <label key={optionIndex} className="flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name={questionKey}
+                      value={option}
+                      checked={currentAnswer === option}
+                      onChange={(e) => onAnswerChange(questionKey, e.target.value)}
+                      className="text-purple-600"
+                    />
+                    <span className="text-gray-700">{option}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })}
+      
+      <button
+        onClick={onSubmit}
+        disabled={isSubmitting}
+        className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 px-6 rounded-lg font-medium hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+      >
+        {isSubmitting ? (
+          <div className="flex items-center justify-center space-x-2">
+            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            <span>Improving...</span>
+          </div>
+        ) : (
+          'Improve My Prompt'
+        )}
+      </button>
+    </div>
+  );
+};
+
+// New iterative improvement flow view
+const IterativeFlowView = ({
+  userPrompt,
+  analysisResult,
+  userAnswers,
+  improvedVersions,
+  currentIteration,
+  isLoadingAnalysis,
+  isImproving,
+  onAnswerChange,
+  onImprovePrompt,
+  onContinueImprovement,
+  setCurrentView,
+  setUserPrompt
+}: {
+  userPrompt: string;
+  analysisResult: AnalyzePromptResponse | null;
+  userAnswers: Record<string, any>;
+  improvedVersions: string[];
+  currentIteration: number;
+  isLoadingAnalysis: boolean;
+  isImproving: boolean;
+  onAnswerChange: (questionKey: string, answer: any) => void;
+  onImprovePrompt: () => void;
+  onContinueImprovement: () => void;
+  setCurrentView: (view: string) => void;
+  setUserPrompt: (prompt: string) => void;
+}) => {
+  if (isLoadingAnalysis) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-100 via-blue-50 to-purple-100 p-4 pt-20">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-white rounded-2xl shadow-lg p-8 text-center">
+            <div className="animate-spin w-12 h-12 border-4 border-purple-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+            <h2 className="text-xl font-semibold text-gray-800 mb-2">Analyzing Your Prompt</h2>
+            <p className="text-gray-600">The wizard is examining your prompt and preparing questions...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!analysisResult) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-100 via-blue-50 to-purple-100 p-4 pt-20">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-white rounded-2xl shadow-lg p-8 text-center">
+            <h2 className="text-xl font-semibold text-gray-800 mb-2">Something went wrong</h2>
+            <p className="text-gray-600 mb-4">Unable to analyze your prompt. Please try again.</p>
+            <button
+              onClick={() => setCurrentView('home')}
+              className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700"
+            >
+              Go Back
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const currentPrompt = improvedVersions.length > 0 ? improvedVersions[improvedVersions.length - 1] : userPrompt;
+  const maxIterations = 5;
+  const canContinue = currentIteration < maxIterations;
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-green-100 via-blue-50 to-purple-100 p-4 pt-20">
+      <div className="max-w-4xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="bg-white rounded-2xl shadow-lg p-6">
+          <div className="flex items-center justify-between mb-4">
+            <button
+              onClick={() => setCurrentView('home')}
+              className="flex items-center space-x-2 text-gray-600 hover:text-gray-800"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Back to Home</span>
+            </button>
+            <div className="text-sm text-gray-500">
+              Iteration {currentIteration} of {maxIterations}
+            </div>
+          </div>
+          
+          <h1 className="text-2xl font-bold text-gray-800 mb-2">
+            🧙‍♂️ Iterative Prompt Improvement
+          </h1>
+          <p className="text-gray-600">
+            Answer the questions below to improve your prompt through multiple iterations.
+          </p>
+        </div>
+
+        {/* Current Prompt Display */}
+        <div className="bg-white rounded-2xl shadow-lg p-6">
+          <h2 className="text-lg font-semibold text-gray-800 mb-3">Current Prompt</h2>
+          <div className="bg-gray-50 rounded-lg p-4">
+            <p className="text-gray-700 whitespace-pre-wrap">{currentPrompt}</p>
+          </div>
+          {analysisResult && (
+            <div className="mt-4 flex items-center space-x-4 text-sm">
+              <div className="flex items-center space-x-1">
+                <span className="text-gray-600">Score:</span>
+                <span className="font-semibold text-purple-600">{analysisResult.score}/100</span>
+              </div>
+              <div className="flex items-center space-x-1">
+                <span className="text-gray-600">Quality:</span>
+                <span className="font-semibold text-blue-600">{analysisResult.score_label}</span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Show improved versions with diff */}
+        {improvedVersions.length > 0 && (
+          <div className="bg-white rounded-2xl shadow-lg p-6">
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">Improvement History</h2>
+            <div className="space-y-4">
+              {improvedVersions.map((version, index) => {
+                const previousVersion = index === 0 ? userPrompt : improvedVersions[index - 1];
+                return (
+                  <div key={index} className="border border-gray-200 rounded-lg p-4">
+                    <h3 className="font-medium text-gray-700 mb-2">Iteration {index + 1}</h3>
+                    <DiffViewer originalText={previousVersion} newText={version} />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Questions Form */}
+        {currentIteration === 0 && analysisResult.suggested_questions && (
+          <div className="bg-white rounded-2xl shadow-lg p-6">
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">Answer these questions to improve your prompt</h2>
+            <DynamicQuestionForm
+              questions={analysisResult.suggested_questions}
+              answers={userAnswers}
+              onAnswerChange={onAnswerChange}
+              onSubmit={onImprovePrompt}
+              isSubmitting={isImproving}
+            />
+          </div>
+        )}
+
+        {/* Improvement Controls */}
+        {currentIteration > 0 && (
+          <div className="bg-white rounded-2xl shadow-lg p-6">
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">Continue Improving</h2>
+            {canContinue ? (
+              <div className="space-y-4">
+                <p className="text-gray-600">
+                  Your prompt has been improved! You can continue refining it with additional iterations.
+                </p>
+                <div className="flex space-x-4">
+                  <button
+                    onClick={onContinueImprovement}
+                    disabled={isImproving}
+                    className="bg-gradient-to-r from-purple-600 to-pink-600 text-white py-2 px-6 rounded-lg font-medium hover:from-purple-700 hover:to-pink-700 disabled:opacity-50"
+                  >
+                    {isImproving ? 'Improving...' : 'Improve More'}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setUserPrompt(currentPrompt);
+                      setCurrentView('results');
+                    }}
+                    className="bg-gray-600 text-white py-2 px-6 rounded-lg font-medium hover:bg-gray-700"
+                  >
+                    Finish & Save
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-4">
+                <p className="text-gray-600 mb-4">
+                  You've reached the maximum number of iterations ({maxIterations}). Further improvement is not possible.
+                </p>
+                <button
+                  onClick={() => {
+                    setUserPrompt(currentPrompt);
+                    setCurrentView('results');
+                  }}
+                  className="bg-gradient-to-r from-purple-600 to-pink-600 text-white py-2 px-6 rounded-lg font-medium hover:from-purple-700 hover:to-pink-700"
+                >
+                  Finish & Save
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 
 const SlothPromptBoost = () => {
   const { user } = useAuth();
@@ -863,6 +1175,15 @@ const SlothPromptBoost = () => {
   const [preliminaryPrompt, setPreliminaryPrompt] = useState<string>('');
   const [preliminaryRound, setPreliminaryRound] = useState<number>(1);
   const [preliminaryScore, setPreliminaryScore] = useState<{laziness: number; quality: number}>({laziness: 0, quality: 0});
+  
+  // Iterative improvement mode state
+  const [analysisResult, setAnalysisResult] = useState<AnalyzePromptResponse | null>(null);
+  const [userAnswers, setUserAnswers] = useState<Record<string, any>>({});
+  const [improvedVersions, setImprovedVersions] = useState<string[]>([]);
+  const [currentIteration, setCurrentIteration] = useState<number>(0);
+  const [iterativeAnswers, setIterativeAnswers] = useState<Record<string, any>[]>([]);
+  const [isLoadingAnalysis, setIsLoadingAnalysis] = useState<boolean>(false);
+  const [isImproving, setIsImproving] = useState<boolean>(false);
   
   const promptTextareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -951,45 +1272,132 @@ const SlothPromptBoost = () => {
   };
 
 
+  // New iterative improvement flow handlers
+  const handleAnswerChange = (questionKey: string, answer: any) => {
+    setUserAnswers(prev => ({ ...prev, [questionKey]: answer }));
+  };
+
+  const handleImprovePrompt = async () => {
+    if (!userPrompt.trim()) return;
+    
+    setIsImproving(true);
+    setWizardMessage("Creating an improved version of your prompt... ✨");
+    
+    try {
+      const currentPrompt = improvedVersions.length > 0 ? improvedVersions[improvedVersions.length - 1] : userPrompt;
+      
+      const request = {
+        originalPrompt: userPrompt,
+        improvementArea: 'comprehensive',
+        answers: {
+          ...userAnswers,
+          previousVersions: improvedVersions,
+          iterationCount: currentIteration
+        }
+      };
+
+      const { data, error } = await promptService.improvePrompt(request);
+      
+      if (error) {
+        throw new Error(error.message || 'Failed to improve prompt');
+      }
+
+      if (data?.improved_prompt) {
+        setImprovedVersions(prev => [...prev, data.improved_prompt]);
+        setCurrentIteration(prev => prev + 1);
+        setIterativeAnswers(prev => [...prev, userAnswers]);
+        setWizardMessage("Your prompt has been improved! ✨");
+        showNotification('Prompt improved successfully!', 'success');
+      } else {
+        throw new Error('No improved prompt received');
+      }
+    } catch (error) {
+      console.error('Failed to improve prompt:', error);
+      showNotification('Failed to improve prompt. Please try again.', 'error');
+      setWizardMessage("Something went wrong with the improvement. Try again? 🔮");
+    } finally {
+      setIsImproving(false);
+    }
+  };
+
+  const handleContinueImprovement = async () => {
+    if (currentIteration >= 5) return;
+    
+    setIsImproving(true);
+    setWizardMessage("Applying another round of improvements... ✨");
+    
+    try {
+      const currentPrompt = improvedVersions[improvedVersions.length - 1];
+      
+      const request = {
+        originalPrompt: userPrompt,
+        improvementArea: 'comprehensive',
+        answers: {
+          ...userAnswers,
+          previousVersions: improvedVersions,
+          iterationCount: currentIteration,
+          allIterativeAnswers: iterativeAnswers
+        }
+      };
+
+      const { data, error } = await promptService.improvePrompt(request);
+      
+      if (error) {
+        throw new Error(error.message || 'Failed to improve prompt');
+      }
+
+      if (data?.improved_prompt) {
+        setImprovedVersions(prev => [...prev, data.improved_prompt]);
+        setCurrentIteration(prev => prev + 1);
+        setWizardMessage(`Iteration ${currentIteration + 1} complete! ✨`);
+        showNotification(`Iteration ${currentIteration + 1} completed!`, 'success');
+      } else {
+        throw new Error('No improved prompt received');
+      }
+    } catch (error) {
+      console.error('Failed to continue improvement:', error);
+      showNotification('Failed to continue improvement. Please try again.', 'error');
+      setWizardMessage("Something went wrong with the improvement. Try again? 🔮");
+    } finally {
+      setIsImproving(false);
+    }
+  };
+
   const handleGenerate = async () => {
     if (!userPrompt.trim()) return;
     
-    // Start three-round questioning
-    setIsGenerating(true);
-    setWizardMessage("Let me ask you 6 smart questions to create the perfect prompt... 🎯");
-    setCurrentRound(1);
-    setTopicAnswers({});
+    // Start iterative improvement flow
+    setIsLoadingAnalysis(true);
+    setWizardMessage("Analyzing your prompt and preparing questions... 🔍");
+    
+    // Reset state for new session
+    setAnalysisResult(null);
+    setUserAnswers({});
+    setImprovedVersions([]);
+    setCurrentIteration(0);
+    setIterativeAnswers([]);
     
     try {
-      const request: EnhancePromptRequest = {
-        user_input: userPrompt,
-        mode: 'three_round',
-        round: 1
-      };
-
-      const { data, error } = await promptService.enhancePrompt(request);
+      const { data, error } = await promptService.analyzePrompt({ prompt: userPrompt });
       
       if (error) {
-        const errorMessage = typeof error.message === 'string' 
-          ? error.message 
-          : (error.message ? JSON.stringify(error.message) : 'Failed to generate questions');
-        throw new Error(errorMessage);
+        throw new Error(error.message || 'Failed to analyze prompt');
       }
 
-      if (data?.round_questions) {
-        setRoundQuestions(data.round_questions);
-        setDetectedLanguage(data.detected_language || 'en');
-        setCurrentView('three-round');
-        setWizardMessage("Round 1: Let's clarify the basics! 🎯");
+      if (data) {
+        setAnalysisResult(data);
+        setCurrentView('iterative');
+        setWizardMessage("Analysis complete! Answer the questions to improve your prompt. 📝");
+        showNotification('Analysis complete! Answer the questions below.', 'info');
       } else {
-        throw new Error('No questions received');
+        throw new Error('No analysis data received');
       }
     } catch (error) {
-      console.error('Failed to start questions:', error);
-      showNotification('Failed to start questions. Please try again.', 'error');
-      setWizardMessage("Hmm, even sloths need coffee sometimes. Try again? ☕");
+      console.error('Failed to analyze prompt:', error);
+      showNotification('Failed to analyze prompt. Please try again.', 'error');
+      setWizardMessage("Analysis failed. Let's try again? 🧙‍♂️");
     } finally {
-      setIsGenerating(false);
+      setIsLoadingAnalysis(false);
     }
   };
 
@@ -1200,6 +1608,22 @@ Laziness Score: ${preliminaryScore.laziness}/10 | Quality: ${preliminaryScore.qu
           wizardMessage={wizardMessage}
           lazinessScore={preliminaryScore.laziness}
           qualityScore={preliminaryScore.quality}
+        />
+      )}
+      {currentView === 'iterative' && (
+        <IterativeFlowView
+          userPrompt={userPrompt}
+          analysisResult={analysisResult}
+          userAnswers={userAnswers}
+          improvedVersions={improvedVersions}
+          currentIteration={currentIteration}
+          isLoadingAnalysis={isLoadingAnalysis}
+          isImproving={isImproving}
+          onAnswerChange={handleAnswerChange}
+          onImprovePrompt={handleImprovePrompt}
+          onContinueImprovement={handleContinueImprovement}
+          setCurrentView={setCurrentView}
+          setUserPrompt={setUserPrompt}
         />
       )}
       {currentView === 'history' && (
