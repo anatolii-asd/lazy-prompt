@@ -44,6 +44,9 @@ async function callDeepSeek(userPrompt: string, systemPrompt: string, functionTy
     parseInt(Deno.env.get('DEEPSEEK_MAX_TOKENS') || '2000') :
     parseInt(Deno.env.get('DEEPSEEK_MAX_TOKENS') || '1500');
   
+  // Log system startup info
+  console.log(`🚀 AI System started using DeepSeek, model: ${model}, max tokens: ${maxTokens}, temperature: ${temperature}, function: ${functionType}`);
+  
   const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -69,7 +72,10 @@ async function callDeepSeek(userPrompt: string, systemPrompt: string, functionTy
   }
 
   const responseData = await response.json();
-  return responseData.choices[0].message.content;
+  const content = responseData.choices[0].message.content;
+  
+  console.log(`✅ DeepSeek API call successful, response length: ${content.length} characters`);
+  return content;
 }
 
 /**
@@ -87,6 +93,9 @@ async function callGemini(userPrompt: string, systemPrompt: string, functionType
   const maxTokens = functionType === 'analyze' ? 
     parseInt(Deno.env.get('GEMINI_MAX_TOKENS') || '2000') :
     parseInt(Deno.env.get('GEMINI_MAX_TOKENS') || '1500');
+  
+  // Log system startup info
+  console.log(`🚀 AI System started using Gemini, model: ${model}, max tokens: ${maxTokens}, temperature: ${temperature}, function: ${functionType}`);
   
   const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
   
@@ -122,7 +131,9 @@ async function callGemini(userPrompt: string, systemPrompt: string, functionType
   if (responseData.candidates && responseData.candidates.length > 0) {
     const candidate = responseData.candidates[0];
     if (candidate.content && candidate.content.parts && candidate.content.parts.length > 0) {
-      return candidate.content.parts[0].text;
+      const content = candidate.content.parts[0].text;
+      console.log(`✅ Gemini API call successful, response length: ${content.length} characters`);
+      return content;
     }
   }
   
