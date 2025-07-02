@@ -34,10 +34,17 @@ serve(async (req) => {
   }
 
   try {
+    const url = new URL(req.url);
+    const pathParts = url.pathname.split('/');
+    const urlOperation = pathParts[pathParts.length - 1]; // Get last part of URL
+    
     const requestBody = await req.json();
     const { operation } = requestBody;
     
-    if (operation === 'analyze') {
+    // Determine operation from URL or request body
+    const finalOperation = (urlOperation === 'analyze' || urlOperation === 'improve') ? urlOperation : operation;
+    
+    if (finalOperation === 'analyze') {
       const { prompt } = requestBody;
       const result = await analyzePrompt(prompt);
       
@@ -48,7 +55,7 @@ serve(async (req) => {
         }
       });
       
-    } else if (operation === 'improve') {
+    } else if (finalOperation === 'improve') {
       const { originalPrompt, improvementArea, answers } = requestBody;
       const result = await improvePrompt(originalPrompt, improvementArea, answers);
       
@@ -61,7 +68,7 @@ serve(async (req) => {
       
     } else {
       return new Response(JSON.stringify({
-        error: 'Missing or invalid operation. Use operation: "analyze" or "improve"'
+        error: 'Missing or invalid operation. Use operation: "analyze" or "improve" in body, or call /ai-functions/analyze or /ai-functions/improve'
       }), {
         status: 400,
         headers: {
@@ -123,12 +130,12 @@ serve(async (req) => {
 });
 
 // Usage examples:
-// curl -i --location --request POST 'http://localhost:54321/functions/v1/ai-functions' \
+// curl -i --location --request POST 'http://localhost:54321/functions/v1/ai-functions/analyze' \
 //   --header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' \
 //   --header 'Content-Type: application/json' \
-//   --data '{"operation":"analyze","prompt":"Write a story about a dragon"}'
+//   --data '{"prompt":"Write a story about a dragon"}'
 
-// curl -i --location --request POST 'http://localhost:54321/functions/v1/ai-functions' \
+// curl -i --location --request POST 'http://localhost:54321/functions/v1/ai-functions/improve' \
 //   --header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' \
 //   --header 'Content-Type: application/json' \
-//   --data '{"operation":"improve","originalPrompt":"Write a story","improvementArea":"comprehensive","answers":{}}'
+//   --data '{"originalPrompt":"Write a story","improvementArea":"comprehensive","answers":{}}'
