@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Copy, RefreshCw, ArrowLeft } from 'lucide-react';
+import { Sparkles, Copy, ArrowLeft } from 'lucide-react';
 import { useAuth } from './contexts/AuthContext';
-import { promptService, PromptWithVersions, EnhancePromptRequest, LazyTweak, RoundQuestion, AnalyzePromptResponse, QuestionItem } from './lib/promptService';
+import { promptService, PromptWithVersions, EnhancePromptRequest, RoundQuestion, AnalyzePromptResponse, QuestionItem } from './lib/promptService';
 import ProfileDropdown from './components/ProfileDropdown';
 import PromptHistory from './components/PromptHistory';
 import NotificationToast from './components/NotificationToast';
@@ -108,7 +108,7 @@ const HomeView = ({
               </div>
             ) : (
               <div className="flex items-center">
-                <Sparkles className="w-6 h-6 mr-3" />
+                <div className="mr-3 text-2xl">🧙‍♂️</div>
                 Start Creating My Prompt! ✨
               </div>
             )}
@@ -122,13 +122,11 @@ const HomeView = ({
 
 // Move ResultsView outside main component
 const ResultsView = ({ 
-  userPrompt, 
-  generatedPrompt, 
+  generatedPrompt,
+  setGeneratedPrompt,
   wizardMessage, 
-  selectedTweak, 
-  setSelectedTweak, 
-  handleTweakConfirm, 
-  isGenerating, 
+  isGenerating,
+  isImproving,
   setCurrentView,
   setUserPrompt,
   setCurrentRound,
@@ -140,10 +138,14 @@ const ResultsView = ({
   setPreliminaryScore,
   savedPromptId,
   user,
-  availableTweaks
+  handleSavePrompt,
+  handleContinueImprovement,
+  currentIteration,
+  improvedVersions
 }: any) => {
   const [versionHistory, setVersionHistory] = useState<any[]>([]);
   const [loadingVersions, setLoadingVersions] = useState(false);
+  const [isVersionHistoryExpanded, setIsVersionHistoryExpanded] = useState(false);
 
   // Load version history when component mounts or savedPromptId changes
   useEffect(() => {
@@ -183,6 +185,11 @@ const ResultsView = ({
     return text.substring(0, maxLength) + '...';
   };
 
+  // Calculate iteration number based on improvedVersions from parent
+  const iterationNumber = improvedVersions && improvedVersions.length > 0 ? 
+    improvedVersions.length + 1 : 
+    (savedPromptId && versionHistory.length > 0 ? versionHistory.length : 1);
+
   return (
   <div className="min-h-screen bg-gradient-to-br from-green-100 via-blue-50 to-purple-100 p-4 pt-20">
     <div className="max-w-4xl mx-auto">
@@ -196,6 +203,7 @@ const ResultsView = ({
       <div className="text-center mb-8">
         <h2 className="text-3xl font-bold text-gray-800 mb-2">🧙‍♂️ Behold! 🎉</h2>
         <p className="text-xl text-gray-600">Your prompt has been enchanted with wisdom!</p>
+        <p className="text-lg text-gray-500 mt-2">Iteration {iterationNumber}</p>
       </div>
 
       {/* Wizard Celebration */}
@@ -217,68 +225,107 @@ const ResultsView = ({
             <div className="bg-gradient-to-r from-green-400 to-blue-500 p-4">
               <h3 className="text-white text-xl font-bold flex items-center">
                 <Sparkles className="w-6 h-6 mr-2" />
-                Your Amazing Prompt ✨
+                Your Enchanted Prompt ✨
               </h3>
             </div>
             <div className="p-6">
-              <div className="bg-gray-50 rounded-2xl p-4 font-mono text-sm leading-relaxed mb-4 max-h-80 overflow-y-auto border-2 border-gray-200">
-                {generatedPrompt}
-              </div>
-              <div className="flex justify-center">
+              {/* Editable prompt area */}
+              <textarea
+                value={generatedPrompt}
+                onChange={(e) => setGeneratedPrompt(e.target.value)}
+                className="w-full bg-gray-50 rounded-2xl p-4 font-mono text-sm leading-relaxed mb-4 min-h-[300px] max-h-[500px] resize-y border-2 border-gray-200 focus:border-purple-400 focus:ring-2 focus:ring-purple-200 outline-none transition-all"
+                placeholder="Your magical prompt will appear here..."
+              />
+              
+              {/* Copy and Save buttons */}
+              <div className="grid grid-cols-2 gap-3">
                 <button 
                   onClick={() => navigator.clipboard.writeText(generatedPrompt)}
-                  className="flex items-center space-x-2 bg-green-500 text-white px-4 py-2 rounded-xl hover:bg-green-600 transition-colors font-medium shadow-md"
+                  className="flex items-center justify-center space-x-2 bg-green-500 text-white px-4 py-3 rounded-xl hover:bg-green-600 transition-colors font-medium shadow-md"
                 >
                   <Copy className="w-4 h-4" />
-                  <span>Copy Magic! ✨</span>
+                  <span>Copy</span>
+                </button>
+                <button 
+                  onClick={handleSavePrompt}
+                  disabled={!user || !generatedPrompt}
+                  className="flex items-center justify-center space-x-2 bg-blue-500 text-white px-4 py-3 rounded-xl hover:bg-blue-600 transition-colors font-medium shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <span>Save</span>
                 </button>
               </div>
             </div>
           </div>
-
-          {/* Before/After */}
-          <div className="bg-white rounded-3xl shadow-xl mt-6 p-6">
-            <h4 className="text-xl font-bold text-gray-800 mb-4 text-center">Look at this transformation! 🦋</h4>
-            <div className="grid md:grid-cols-2 gap-6">
-              <div>
-                <div className="text-center mb-3">
-                  <span className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-medium">Before (Meh... 😑)</span>
-                </div>
-                <div className="bg-red-50 border-2 border-red-200 rounded-2xl p-4">
-                  <p className="text-gray-700 text-center">{userPrompt}</p>
-                </div>
-              </div>
-              <div>
-                <div className="text-center mb-3">
-                  <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium">After (Amazing! 🤩)</span>
-                </div>
-                <div className="bg-green-50 border-2 border-green-200 rounded-2xl p-4">
-                  <p className="text-gray-700 text-center text-sm">
-                    Professional prompt with persona, structure, requirements, and specific instructions...
-                  </p>
-                </div>
-              </div>
-            </div>
+          
+          {/* Action buttons - separated */}
+          <div className="bg-white rounded-3xl shadow-xl mt-6 p-6 space-y-3">
+            <button 
+              onClick={handleContinueImprovement}
+              disabled={isImproving || currentIteration >= 5}
+              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 px-6 rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all font-medium shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {currentIteration >= 5 ? 'Maximum Iterations Reached' : 'Run One More Improvement'}
+            </button>
+            
+            <button 
+              onClick={() => {
+                setUserPrompt('');
+                setCurrentRound(1);
+                setRoundQuestions([]);
+                setTopicAnswers({});
+                setDetectedLanguage('en');
+                setPreliminaryPrompt('');
+                setPreliminaryRound(1);
+                setPreliminaryScore({laziness: 0, quality: 0});
+                setCurrentView('home');
+              }}
+              className="w-full bg-gradient-to-r from-green-500 to-blue-600 text-white py-3 px-6 rounded-xl hover:from-green-600 hover:to-blue-700 transition-all font-medium shadow-md"
+            >
+              Run New Prompt
+            </button>
           </div>
+
 
           {/* Version History */}
           {savedPromptId && versionHistory.length > 0 && (
-            <div className="bg-white rounded-3xl shadow-xl mt-6 p-6">
-              <h4 className="text-xl font-bold text-gray-800 mb-4 text-center flex items-center justify-center">
-                📚 Version History 
-                <span className="ml-2 text-sm bg-purple-100 text-purple-700 px-2 py-1 rounded-full">
-                  {versionHistory.length} versions
-                </span>
-              </h4>
+            <div className="bg-white rounded-3xl shadow-xl mt-6 overflow-hidden">
+              <button
+                onClick={() => setIsVersionHistoryExpanded(!isVersionHistoryExpanded)}
+                className="w-full p-6 text-left hover:bg-gray-50 transition-colors"
+              >
+                <h4 className="text-xl font-bold text-gray-800 flex items-center justify-between">
+                  <div className="flex items-center">
+                    📚 Version History 
+                    <span className="ml-2 text-sm bg-purple-100 text-purple-700 px-2 py-1 rounded-full">
+                      {versionHistory.length} versions
+                    </span>
+                  </div>
+                  <div className={`transform transition-transform ${isVersionHistoryExpanded ? 'rotate-180' : ''}`}>
+                    <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </h4>
+              </button>
               
-              {loadingVersions ? (
-                <div className="text-center py-4">
-                  <div className="animate-spin w-6 h-6 border-2 border-purple-600 border-t-transparent rounded-full mx-auto mb-2"></div>
-                  <p className="text-gray-600">Loading versions...</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {versionHistory.map((version, index) => (
+              <AnimatePresence>
+                {isVersionHistoryExpanded && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="px-6 pb-6 border-t border-gray-100">
+                  {loadingVersions ? (
+                    <div className="text-center py-4">
+                      <div className="animate-spin w-6 h-6 border-2 border-purple-600 border-t-transparent rounded-full mx-auto mb-2"></div>
+                      <p className="text-gray-600">Loading versions...</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4 mt-4">
+                      {versionHistory.map((version, index) => (
                     <div key={version.id} className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow">
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-3">
@@ -310,68 +357,26 @@ const ResultsView = ({
                       </div>
                     </div>
                   ))}
+                    </div>
+                  )}
                 </div>
-              )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           )}
         </div>
 
         {/* Sidebar */}
         <div className="space-y-6">
-          {/* Quick Tweaks */}
-          <div className="bg-white rounded-3xl shadow-xl p-6">
-            <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
-              <RefreshCw className="w-5 h-5 mr-2 text-purple-500" />
-              Magical Enhancements 🔧
-            </h4>
-            <div className="space-y-3">
-              {(availableTweaks && availableTweaks.length > 0 ? availableTweaks : [
-                { name: 'Make it funnier', emoji: '😄', description: 'Add humor and wit' },
-                { name: 'Add more details', emoji: '📝', description: 'Include more specifics' },
-                { name: 'Make it shorter', emoji: '✂️', description: 'Keep it concise' },
-                { name: 'More professional', emoji: '👔', description: 'Formal tone' }
-              ]).map((tweak: LazyTweak) => {
-                const displayName = `${tweak.name} ${tweak.emoji}`;
-                return (
-                  <button
-                    key={tweak.name}
-                    onClick={() => setSelectedTweak(displayName)}
-                    className={`w-full text-left p-3 rounded-xl transition-colors border-2 font-medium ${
-                      selectedTweak === displayName
-                        ? 'bg-purple-50 border-purple-300 text-purple-800'
-                        : 'bg-gray-50 hover:bg-gray-100 border-gray-200 hover:border-purple-300 text-gray-700'
-                    }`}
-                  >
-                    <div className="text-sm font-medium">{displayName}</div>
-                    <div className="text-xs text-gray-500 mt-1">{tweak.description}</div>
-                  </button>
-                );
-              })}
-            </div>
-            
-            {/* Confirmation Button */}
-            {selectedTweak && (
-              <div className="mt-4 pt-4 border-t border-gray-200">
-                <button
-                  onClick={handleTweakConfirm}
-                  className="w-full py-3 bg-gradient-to-r from-purple-400 to-pink-500 text-white font-bold rounded-xl hover:from-purple-500 hover:to-pink-600 transform hover:scale-105 transition-all shadow-md"
-                >
-                  Apply "{selectedTweak}" ✨
-                </button>
-                <button
-                  onClick={() => setSelectedTweak(null)}
-                  className="w-full mt-2 py-2 text-gray-600 hover:text-gray-800 transition-colors text-sm"
-                >
-                  Cancel
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Stats */}
+          {/* Wizard Stats */}
           <div className="bg-gradient-to-br from-purple-100 to-pink-100 rounded-3xl p-6 border-2 border-purple-200">
             <h4 className="text-lg font-bold text-gray-800 mb-4 text-center">Wizard Stats 📊</h4>
             <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">Iterations</span>
+                <span className="font-bold text-purple-600">{iterationNumber}</span>
+              </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600">Wisdom Level</span>
                 <span className="font-bold text-green-600">Legendary! 🧙‍♂️</span>
@@ -386,24 +391,6 @@ const ResultsView = ({
               </div>
             </div>
           </div>
-
-          {/* Create Another */}
-          <button 
-            onClick={() => {
-              setUserPrompt('');
-              setCurrentRound(1);
-              setRoundQuestions([]);
-              setTopicAnswers({});
-              setDetectedLanguage('en');
-              setPreliminaryPrompt('');
-              setPreliminaryRound(1);
-              setPreliminaryScore({laziness: 0, quality: 0});
-              setCurrentView('home');
-            }}
-            className="w-full py-4 bg-gradient-to-r from-green-400 to-blue-500 text-white text-lg font-bold rounded-2xl hover:from-green-500 hover:to-blue-600 transform hover:scale-105 transition-all shadow-lg"
-          >
-            Seek More Wisdom! 🧙‍♂️✨
-          </button>
         </div>
       </div>
     </div>
@@ -1142,7 +1129,7 @@ const IterativeFlowView = ({
   onImprovePrompt,
   onContinueImprovement,
   setCurrentView,
-  setUserPrompt,
+  setGeneratedPrompt,
   showingQuestions,
   currentIterationAnswers
 }: {
@@ -1157,7 +1144,7 @@ const IterativeFlowView = ({
   onImprovePrompt: () => void;
   onContinueImprovement: () => void;
   setCurrentView: (view: string) => void;
-  setUserPrompt: (prompt: string) => void;
+  setGeneratedPrompt: (prompt: string) => void;
   showingQuestions: boolean;
   currentIterationAnswers: Record<string, any>;
 }) => {
@@ -1300,7 +1287,7 @@ const IterativeFlowView = ({
                   </button>
                   <button
                     onClick={() => {
-                      setUserPrompt(currentPrompt);
+                      setGeneratedPrompt(currentPrompt);
                       setCurrentView('results');
                     }}
                     className="bg-gray-600 text-white py-2 px-6 rounded-lg font-medium hover:bg-gray-700"
@@ -1316,7 +1303,7 @@ const IterativeFlowView = ({
                 </p>
                 <button
                   onClick={() => {
-                    setUserPrompt(currentPrompt);
+                    setGeneratedPrompt(currentPrompt);
                     setCurrentView('results');
                   }}
                   className="bg-gradient-to-r from-purple-600 to-pink-600 text-white py-2 px-6 rounded-lg font-medium hover:from-purple-700 hover:to-pink-700"
@@ -1340,7 +1327,6 @@ const SlothPromptBoost = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedPrompt, setGeneratedPrompt] = useState('');
   const [wizardMessage, setWizardMessage] = useState("Let us weave magic into your words! 🧙‍♂️");
-  const [selectedTweak, setSelectedTweak] = useState<string | null>(null);
   const [promptCount, setPromptCount] = useState(0);
   const [savedPromptId, setSavedPromptId] = useState<string | null>(null);
   const [notification, setNotification] = useState<{
@@ -1348,7 +1334,6 @@ const SlothPromptBoost = () => {
     type: 'success' | 'error' | 'warning' | 'info';
     isVisible: boolean;
   }>({ message: '', type: 'info', isVisible: false });
-  const [availableTweaks, setAvailableTweaks] = useState<LazyTweak[]>([]);
   
   // Three-round mode state
   const [currentRound, setCurrentRound] = useState<number>(1);
@@ -1494,10 +1479,11 @@ const SlothPromptBoost = () => {
         setImprovedVersions(prev => [...prev, data.improved_prompt]);
         setCurrentIteration(prev => prev + 1);
         setIterativeAnswers(prev => [...prev, answersToUse]);
-        setShowingQuestions(false); // Hide questions after improvement
         setCurrentIterationAnswers({}); // Reset for next iteration
+        setGeneratedPrompt(data.improved_prompt); // Set the improved prompt as generated
         setWizardMessage("Your prompt has been improved! ✨");
         showNotification('Prompt improved successfully!', 'success');
+        setCurrentView('results'); // Go directly to results page
       } else {
         throw new Error('No improved prompt received');
       }
@@ -1531,6 +1517,7 @@ const SlothPromptBoost = () => {
         setAnalysisResult(data);
         setShowingQuestions(true);
         setCurrentIterationAnswers({});
+        setCurrentView('iterative'); // Switch back to iterative view
         setWizardMessage(`Iteration ${currentIteration + 1}: Answer new questions based on your improved prompt! 📝`);
         showNotification(`New questions generated for iteration ${currentIteration + 1}`, 'info');
       } else {
@@ -1549,6 +1536,7 @@ const SlothPromptBoost = () => {
     if (!userPrompt.trim()) return;
     
     // Start iterative improvement flow
+    setIsGenerating(true);
     setIsLoadingAnalysis(true);
     setWizardMessage("Analyzing your prompt and preparing questions... 🔍");
     
@@ -1581,37 +1569,12 @@ const SlothPromptBoost = () => {
       showNotification('Failed to analyze prompt. Please try again.', 'error');
       setWizardMessage("Analysis failed. Let's try again? 🧙‍♂️");
     } finally {
+      setIsGenerating(false);
       setIsLoadingAnalysis(false);
     }
   };
 
 
-  const handleTweakConfirm = () => {
-    if (!selectedTweak) return;
-    
-    setIsGenerating(true);
-    setWizardMessage(`Making it ${selectedTweak.toLowerCase()}... because you asked so nicely! 😊`);
-    
-    // Simulate API call for tweaking
-    setTimeout(() => {
-      let tweakedPrompt = generatedPrompt;
-      
-      if (selectedTweak.includes('funnier')) {
-        tweakedPrompt += "\n\nAdditional note: Please incorporate humor and wit throughout your response. Use appropriate jokes, puns, or lighthearted examples to make the content engaging and memorable.";
-      } else if (selectedTweak.includes('details')) {
-        tweakedPrompt += "\n\nAdditional note: Provide extensive detail, examples, and explanations. Include step-by-step instructions, specific examples, and comprehensive coverage of the topic.";
-      } else if (selectedTweak.includes('shorter')) {
-        tweakedPrompt += "\n\nAdditional note: Keep your response concise and to the point. Focus on the most essential information and avoid unnecessary elaboration.";
-      } else if (selectedTweak.includes('professional')) {
-        tweakedPrompt += "\n\nAdditional note: Maintain a highly professional tone throughout. Use formal language, industry terminology, and structure your response in a business-appropriate format.";
-      }
-      
-      setGeneratedPrompt(tweakedPrompt);
-      setIsGenerating(false);
-      setSelectedTweak(null);
-      setWizardMessage("Boom! Your prompt just got even lazier! 🎉");
-    }, 2000);
-  };
 
 
   const handleRoundComplete = async (answers: Record<string, string>) => {
@@ -1706,7 +1669,6 @@ const SlothPromptBoost = () => {
   const handleFinishWithPreliminary = () => {
     // Use the preliminary prompt as the final result
     setGeneratedPrompt(preliminaryPrompt);
-    setAvailableTweaks([]);
     setCurrentView('results');
     setSavedPromptId(null);
     setWizardMessage(`Great! Your prompt is ready after ${preliminaryRound} round${preliminaryRound > 1 ? 's' : ''}! 🎉
@@ -1745,13 +1707,11 @@ Laziness Score: ${preliminaryScore.laziness}/10 | Quality: ${preliminaryScore.qu
       )}
       {currentView === 'results' && (
         <ResultsView 
-          userPrompt={userPrompt}
           generatedPrompt={generatedPrompt}
+          setGeneratedPrompt={setGeneratedPrompt}
           wizardMessage={wizardMessage}
-          selectedTweak={selectedTweak}
-          setSelectedTweak={setSelectedTweak}
-          handleTweakConfirm={handleTweakConfirm}
           isGenerating={isGenerating}
+          isImproving={isImproving}
           setCurrentView={setCurrentView}
           setUserPrompt={setUserPrompt}
           setCurrentRound={setCurrentRound}
@@ -1763,7 +1723,10 @@ Laziness Score: ${preliminaryScore.laziness}/10 | Quality: ${preliminaryScore.qu
           setPreliminaryScore={setPreliminaryScore}
           savedPromptId={savedPromptId}
           user={user}
-          availableTweaks={availableTweaks}
+          handleSavePrompt={handleSavePrompt}
+          handleContinueImprovement={handleContinueImprovement}
+          currentIteration={currentIteration}
+          improvedVersions={improvedVersions}
         />
       )}
       {currentView === 'three-round' && (
@@ -1807,7 +1770,7 @@ Laziness Score: ${preliminaryScore.laziness}/10 | Quality: ${preliminaryScore.qu
           onImprovePrompt={handleImprovePrompt}
           onContinueImprovement={handleContinueImprovement}
           setCurrentView={setCurrentView}
-          setUserPrompt={setUserPrompt}
+          setGeneratedPrompt={setGeneratedPrompt}
           showingQuestions={showingQuestions}
           currentIterationAnswers={currentIterationAnswers}
         />

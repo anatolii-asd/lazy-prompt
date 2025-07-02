@@ -134,9 +134,9 @@ export default function PromptHistory({ onBack, onLoadPrompt }: PromptHistoryPro
 
           <div className="text-center">
             <h1 className="text-4xl font-bold text-gray-800 mb-2">
-              🦥 My Lazy Prompts
+              🧙‍♂️ My Enchanted Prompts
             </h1>
-            <p className="text-gray-600">Your collection of effortlessly amazing prompts</p>
+            <p className="text-gray-600">Your spellbook of magical prompt wisdom</p>
           </div>
         </div>
 
