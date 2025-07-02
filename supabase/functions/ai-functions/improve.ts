@@ -2,7 +2,9 @@
 import { ai_call } from "./ai_call.ts";
 
 // System prompt for prompt improvement
-const IMPROVE_SYSTEM_PROMPT = 'You are a prompt improvement specialist. Help users enhance their prompts based on their specific requirements. Focus on creating natural, well-structured prompts that incorporate the user\'s answers seamlessly. Respond with ONLY valid JSON (no markdown formatting, no code blocks, no additional text).';
+const IMPROVE_SYSTEM_PROMPT = `You are a prompt improvement specialist. Help users enhance their prompts based on their specific requirements. Focus on creating natural, well-structured prompts that incorporate the user's answers seamlessly. 
+
+CRITICAL: You must respond with ONLY valid JSON. Do not use markdown formatting, do not wrap in code blocks, do not add any text before or after the JSON. Start your response directly with { and end with }.`;
 
 /**
  * Improve a prompt based on user answers
@@ -52,16 +54,19 @@ Please provide an improved version of the prompt that incorporates these answers
     // Clean the response - remove markdown code blocks if present
     let cleanedContent = responseContent.trim();
     
-    // Remove ```json and ``` if present
-    if (cleanedContent.startsWith('```json')) {
-      cleanedContent = cleanedContent.replace(/^```json\s*/, '').replace(/\s*```$/, '');
-    } else if (cleanedContent.startsWith('```')) {
-      cleanedContent = cleanedContent.replace(/^```\s*/, '').replace(/\s*```$/, '');
-    }
+    // Remove ```json and ``` with multiline support
+    cleanedContent = cleanedContent.replace(/^```json\n?/gm, '').replace(/\n?```$/gm, '');
+    cleanedContent = cleanedContent.replace(/^```\n?/gm, '').replace(/\n?```$/gm, '');
+    
+    // Trim again after cleaning
+    cleanedContent = cleanedContent.trim();
+    
+    console.log('Cleaned JSON content preview:', cleanedContent.substring(0, 100) + '...');
     
     return JSON.parse(cleanedContent);
   } catch (error) {
-    console.error('Failed to parse AI response as JSON:', responseContent);
+    console.error('Failed to parse AI response as JSON. Original content:', responseContent);
+    console.error('Cleaned content:', cleanedContent);
     throw new Error('Invalid JSON response from AI provider');
   }
 }
