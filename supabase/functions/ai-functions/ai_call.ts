@@ -128,11 +128,14 @@ async function callGemini(userPrompt: string, systemPrompt: string, functionType
   const responseData = await response.json();
   
   // Extract content from Gemini response
+  console.log('🔍 DEBUG: Gemini response structure:', JSON.stringify(responseData, null, 2));
+  
   if (responseData.candidates && responseData.candidates.length > 0) {
     const candidate = responseData.candidates[0];
     if (candidate.content && candidate.content.parts && candidate.content.parts.length > 0) {
       const content = candidate.content.parts[0].text;
       console.log(`✅ Gemini API call successful, response length: ${content.length} characters`);
+      console.log('🔍 DEBUG: Raw Gemini content preview:', JSON.stringify(content.substring(0, 100)));
       return content;
     }
   }

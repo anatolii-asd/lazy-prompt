@@ -53,21 +53,34 @@ export async function analyzePrompt(prompt: string): Promise<any> {
     // Clean the response - remove markdown code blocks if present
     let cleanedContent = responseContent.trim();
     
+    console.log('🔍 DEBUG: Original response length:', responseContent.length);
+    console.log('🔍 DEBUG: First 50 chars:', JSON.stringify(responseContent.substring(0, 50)));
+    
     // More aggressive cleaning - find the actual JSON content
     const jsonStart = cleanedContent.indexOf('{');
     const jsonEnd = cleanedContent.lastIndexOf('}');
     
+    console.log('🔍 DEBUG: JSON start position:', jsonStart);
+    console.log('🔍 DEBUG: JSON end position:', jsonEnd);
+    
     if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
       cleanedContent = cleanedContent.substring(jsonStart, jsonEnd + 1);
+      console.log('🔍 DEBUG: Extracted JSON length:', cleanedContent.length);
+      console.log('🔍 DEBUG: First 100 chars of extracted JSON:', cleanedContent.substring(0, 100));
+    } else {
+      console.log('❌ DEBUG: Could not find valid JSON boundaries');
     }
     
-    console.log('Cleaned JSON content preview:', cleanedContent.substring(0, 100) + '...');
+    const result = JSON.parse(cleanedContent);
+    console.log('✅ DEBUG: JSON parsing successful');
+    return result;
     
-    return JSON.parse(cleanedContent);
   } catch (error) {
-    console.error('Failed to parse AI response as JSON. Original content length:', responseContent.length);
-    console.error('Original preview:', responseContent.substring(0, 200));
-    console.error('Cleaned content preview:', cleanedContent?.substring(0, 200));
+    console.error('❌ DEBUG: JSON parsing failed');
+    console.error('Error message:', error.message);
+    console.error('Original content length:', responseContent.length);
+    console.error('First 200 chars of original:', JSON.stringify(responseContent.substring(0, 200)));
+    console.error('First 200 chars of cleaned:', JSON.stringify(cleanedContent?.substring(0, 200)));
     throw new Error('Invalid JSON response from AI provider');
   }
 }
