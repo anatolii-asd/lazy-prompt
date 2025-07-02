@@ -1,7 +1,7 @@
 // Supabase Edge Function for prompt improvement using Deno
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
-import { getAIConfig, createAIProviderClient } from "../_shared/ai_config.ts";
+import { ai_call } from "../_shared/ai_config.ts";
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -28,9 +28,6 @@ serve(async (req)=>{
   }
   try {
     const { originalPrompt, improvementArea, answers } = await req.json();
-    // Initialize AI provider configuration
-    const aiConfig = getAIConfig();
-    const aiClient = createAIProviderClient(aiConfig);
     let improvePrompt;
     if (improvementArea === 'comprehensive') {
       // Handle comprehensive improvement with all answers
@@ -64,16 +61,9 @@ Please provide an improved version of the prompt that incorporates these answers
   "changes_made": [array of strings describing what was improved]
 }`;
     }
-    // Make request to AI provider
+    // Make AI call using simplified function
     const systemPrompt = 'You are a prompt improvement specialist. Help users enhance their prompts based on their specific requirements. Focus on creating natural, well-structured prompts that incorporate the user\'s answers seamlessly.';
-    const messages = [
-      {
-        role: 'user',
-        content: improvePrompt
-      }
-    ];
-    
-    const responseContent = await aiClient.makeRequest(messages, systemPrompt);
+    const responseContent = await ai_call(improvePrompt, systemPrompt, 'improve');
     const improvement = JSON.parse(responseContent);
     return new Response(JSON.stringify(improvement), {
       headers: {

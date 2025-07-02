@@ -1,7 +1,7 @@
 // Supabase Edge Function for prompt analysis using Deno
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
-import { getAIConfig, createAIProviderClient } from "../_shared/ai_config.ts";
+import { ai_call } from "../_shared/ai_config.ts";
 // System prompt for AI providers
 const SYSTEM_PROMPT = `You are an expert prompt engineering assistant. Your job is to analyze user prompts and provide structured feedback for improvement. You must respond in valid JSON format with the following structure:
 
@@ -71,19 +71,9 @@ serve(async (req)=>{
         }
       });
     }
-    // Initialize AI provider configuration
-    const aiConfig = getAIConfig();
-    const aiClient = createAIProviderClient(aiConfig);
-    
-    // Make request to AI provider
-    const messages = [
-      {
-        role: 'user',
-        content: `Please analyze this prompt: "${prompt}"`
-      }
-    ];
-    
-    const responseContent = await aiClient.makeRequest(messages, SYSTEM_PROMPT);
+    // Make AI call using simplified function
+    const userPrompt = `Please analyze this prompt: "${prompt}"`;
+    const responseContent = await ai_call(userPrompt, SYSTEM_PROMPT, 'analyze');
     const analysis = JSON.parse(responseContent);
     return new Response(JSON.stringify(analysis), {
       headers: {

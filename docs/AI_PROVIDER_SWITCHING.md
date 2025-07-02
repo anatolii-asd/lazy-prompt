@@ -1,32 +1,29 @@
-# AI Provider Switching System
+# AI Provider Switching System (Simplified)
 
-This system allows you to switch between DeepSeek and Google Gemini AI providers using environment variables.
+This system allows you to switch between DeepSeek and Google Gemini AI providers using a single environment variable.
 
 ## Configuration
 
-### Environment Variables
-
-Set these variables in your Supabase Edge Functions environment:
+### Required Environment Variables
 
 #### Provider Selection
 - `MAIN_SYSTEM` - Set to `"deepseek"` or `"gemini"` (default: `"deepseek"`)
 
-#### DeepSeek Configuration
+#### API Keys (Required)
 - `DEEPSEEK_API_KEY` - Your DeepSeek API key (required when using DeepSeek)
+- `GEMINI_API_KEY` - Your Google Gemini API key (required when using Gemini)
+
+### Optional Configuration
+
+#### DeepSeek Settings (Optional - defaults provided)
 - `DEEPSEEK_MODEL` - Model name (default: `"deepseek-chat"`)
 - `DEEPSEEK_TEMPERATURE` - Temperature setting (default: `"0.3"`)
-- `DEEPSEEK_MAX_TOKENS` - Max tokens (default: `"2000"`)
-- `DEEPSEEK_TOP_P` - Top-p sampling (default: `"1.0"`)
-- `DEEPSEEK_FREQUENCY_PENALTY` - Frequency penalty (default: `"0"`)
-- `DEEPSEEK_PRESENCE_PENALTY` - Presence penalty (default: `"0"`)
+- `DEEPSEEK_MAX_TOKENS` - Max tokens (default: `"2000"` for analyze, `"1500"` for improve)
 
-#### Gemini Configuration
-- `GEMINI_API_KEY` - Your Google Gemini API key (required when using Gemini)
+#### Gemini Settings (Optional - defaults provided)
 - `GEMINI_MODEL` - Model name (default: `"gemini-1.5-pro"`)
 - `GEMINI_TEMPERATURE` - Temperature setting (default: `"0.3"`)
-- `GEMINI_MAX_TOKENS` - Max output tokens (default: `"2000"`)
-- `GEMINI_TOP_P` - Top-p sampling (default: `"1.0"`)
-- `GEMINI_TOP_K` - Top-k sampling (default: `"40"`)
+- `GEMINI_MAX_TOKENS` - Max output tokens (default: `"2000"` for analyze, `"1500"` for improve)
 
 ## Usage
 
@@ -74,16 +71,16 @@ The system implements fail-fast error handling:
 ## Implementation Details
 
 ### Files Modified
-- `supabase/functions/_shared/ai_config.ts` - Configuration module
+- `supabase/functions/_shared/ai_config.ts` - Single `ai_call()` function
 - `supabase/functions/analyze/index.ts` - Analysis function
 - `supabase/functions/improve/index.ts` - Improvement function
 - `.env.example` - Environment variable template
 
-### Architecture
-- Shared configuration module handles provider switching
-- Provider-specific clients handle API request formatting
-- Unified interface maintains consistent functionality
-- Environment-based configuration for deployment flexibility
+### Simplified Architecture
+- Single `ai_call()` function handles everything internally
+- Provider switching happens automatically based on `MAIN_SYSTEM`
+- No complex configuration objects or interfaces
+- Minimal environment variables required
 
 ## Testing
 
