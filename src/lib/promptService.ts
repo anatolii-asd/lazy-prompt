@@ -279,7 +279,7 @@ export const promptService = {
   // New iterative improvement flow - analyze prompt
   async analyzePrompt(request: AnalyzePromptRequest): Promise<{ data: AnalyzePromptResponse | null; error: any }> {
     try {
-      const { data, error } = await supabase.functions.invoke('analyze', {
+      const { data, error } = await supabase.functions.invoke('ai-functions/analyze', {
         body: request
       })
 
@@ -296,7 +296,7 @@ export const promptService = {
   // New iterative improvement flow - improve prompt
   async improvePrompt(request: ImprovePromptRequest): Promise<{ data: ImprovePromptResponse | null; error: any }> {
     try {
-      const { data, error } = await supabase.functions.invoke('improve', {
+      const { data, error } = await supabase.functions.invoke('ai-functions/improve', {
         body: request
       })
 
