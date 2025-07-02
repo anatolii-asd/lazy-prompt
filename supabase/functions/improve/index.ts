@@ -1,7 +1,7 @@
 // Supabase Edge Function for prompt improvement using Deno
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
-const DEEPSEEK_API_URL = 'https://api.deepseek.com/v1/chat/completions';
+import { getAIConfig, createAIProviderClient } from "../_shared/ai_config.ts";
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -28,18 +28,9 @@ serve(async (req)=>{
   }
   try {
     const { originalPrompt, improvementArea, answers } = await req.json();
-    const DEEPSEEK_API_KEY = Deno.env.get('DEEPSEEK_API_KEY');
-    if (!DEEPSEEK_API_KEY) {
-      return new Response(JSON.stringify({
-        error: 'DeepSeek API key not configured'
-      }), {
-        status: 500,
-        headers: {
-          'Content-Type': 'application/json',
-          ...corsHeaders
-        }
-      });
-    }
+    // Initialize AI provider configuration
+    const aiConfig = getAIConfig();
+    const aiClient = createAIProviderClient(aiConfig);
     let improvePrompt;
     if (improvementArea === 'comprehensive') {
       // Handle comprehensive improvement with all answers
@@ -73,46 +64,17 @@ Please provide an improved version of the prompt that incorporates these answers
   "changes_made": [array of strings describing what was improved]
 }`;
     }
-    const deepseekResponse = await fetch(DEEPSEEK_API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${DEEPSEEK_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: 'deepseek-chat',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are a prompt improvement specialist. Help users enhance their prompts based on their specific requirements. Focus on creating natural, well-structured prompts that incorporate the user\'s answers seamlessly.'
-          },
-          {
-            role: 'user',
-            content: improvePrompt
-          }
-        ],
-        temperature: 0.3,
-        max_tokens: 1500,
-        response_format: {
-          type: 'json_object'
-        }
-      })
-    });
-    if (!deepseekResponse.ok) {
-      const errorData = await deepseekResponse.text();
-      console.error('DeepSeek API error:', errorData);
-      return new Response(JSON.stringify({
-        error: 'Failed to improve prompt. Please try again.'
-      }), {
-        status: 500,
-        headers: {
-          'Content-Type': 'application/json',
-          ...corsHeaders
-        }
-      });
-    }
-    const responseData = await deepseekResponse.json();
-    const improvement = JSON.parse(responseData.choices[0].message.content);
+    // Make request to AI provider
+    const systemPrompt = 'You are a prompt improvement specialist. Help users enhance their prompts based on their specific requirements. Focus on creating natural, well-structured prompts that incorporate the user\'s answers seamlessly.';
+    const messages = [
+      {
+        role: 'user',
+        content: improvePrompt
+      }
+    ];
+    
+    const responseContent = await aiClient.makeRequest(messages, systemPrompt);
+    const improvement = JSON.parse(responseContent);
     return new Response(JSON.stringify(improvement), {
       headers: {
         'Content-Type': 'application/json',
@@ -121,6 +83,43 @@ Please provide an improved version of the prompt that incorporates these answers
     });
   } catch (error) {
     console.error('Error improving prompt:', error);
+    
+    // Handle configuration errors specifically
+    if (error.message?.includes('API key') || error.message?.includes('environment variable')) {
+      return new Response(JSON.stringify({
+        error: 'AI provider configuration error. Please check your API keys.'
+      }), {
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+          ...corsHeaders
+        }
+      });
+    }
+    
+    // Handle provider-specific API errors
+    if (error.message?.includes('401')) {
+      return new Response(JSON.stringify({
+        error: 'Invalid API key'
+      }), {
+        status: 401,
+        headers: {
+          'Content-Type': 'application/json',
+          ...corsHeaders
+        }
+      });
+    } else if (error.message?.includes('429')) {
+      return new Response(JSON.stringify({
+        error: 'Rate limit exceeded. Please try again later.'
+      }), {
+        status: 429,
+        headers: {
+          'Content-Type': 'application/json',
+          ...corsHeaders
+        }
+      });
+    }
+    
     return new Response(JSON.stringify({
       error: 'Failed to improve prompt. Please try again.'
     }), {
