@@ -34,11 +34,11 @@ serve(async (req) => {
   }
 
   try {
-    const url = new URL(req.url);
-    const functionName = url.pathname.split('/').pop();
+    const requestBody = await req.json();
+    const { operation } = requestBody;
     
-    if (functionName === 'analyze') {
-      const { prompt } = await req.json();
+    if (operation === 'analyze') {
+      const { prompt } = requestBody;
       const result = await analyzePrompt(prompt);
       
       return new Response(JSON.stringify(result), {
@@ -48,8 +48,8 @@ serve(async (req) => {
         }
       });
       
-    } else if (functionName === 'improve') {
-      const { originalPrompt, improvementArea, answers } = await req.json();
+    } else if (operation === 'improve') {
+      const { originalPrompt, improvementArea, answers } = requestBody;
       const result = await improvePrompt(originalPrompt, improvementArea, answers);
       
       return new Response(JSON.stringify(result), {
@@ -61,9 +61,9 @@ serve(async (req) => {
       
     } else {
       return new Response(JSON.stringify({
-        error: 'Unknown function. Use /analyze or /improve'
+        error: 'Missing or invalid operation. Use operation: "analyze" or "improve"'
       }), {
-        status: 404,
+        status: 400,
         headers: {
           'Content-Type': 'application/json',
           ...corsHeaders
@@ -123,12 +123,12 @@ serve(async (req) => {
 });
 
 // Usage examples:
-// curl -i --location --request POST 'http://localhost:54321/functions/v1/ai-functions/analyze' \
+// curl -i --location --request POST 'http://localhost:54321/functions/v1/ai-functions' \
 //   --header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' \
 //   --header 'Content-Type: application/json' \
-//   --data '{"prompt":"Write a story about a dragon"}'
+//   --data '{"operation":"analyze","prompt":"Write a story about a dragon"}'
 
-// curl -i --location --request POST 'http://localhost:54321/functions/v1/ai-functions/improve' \
+// curl -i --location --request POST 'http://localhost:54321/functions/v1/ai-functions' \
 //   --header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' \
 //   --header 'Content-Type: application/json' \
-//   --data '{"originalPrompt":"Write a story","improvementArea":"comprehensive","answers":{}}'
+//   --data '{"operation":"improve","originalPrompt":"Write a story","improvementArea":"comprehensive","answers":{}}'
