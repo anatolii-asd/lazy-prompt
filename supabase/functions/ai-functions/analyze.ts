@@ -53,19 +53,21 @@ export async function analyzePrompt(prompt: string): Promise<any> {
     // Clean the response - remove markdown code blocks if present
     let cleanedContent = responseContent.trim();
     
-    // Remove ```json and ``` with multiline support
-    cleanedContent = cleanedContent.replace(/^```json\n?/gm, '').replace(/\n?```$/gm, '');
-    cleanedContent = cleanedContent.replace(/^```\n?/gm, '').replace(/\n?```$/gm, '');
+    // More aggressive cleaning - find the actual JSON content
+    const jsonStart = cleanedContent.indexOf('{');
+    const jsonEnd = cleanedContent.lastIndexOf('}');
     
-    // Trim again after cleaning
-    cleanedContent = cleanedContent.trim();
+    if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
+      cleanedContent = cleanedContent.substring(jsonStart, jsonEnd + 1);
+    }
     
     console.log('Cleaned JSON content preview:', cleanedContent.substring(0, 100) + '...');
     
     return JSON.parse(cleanedContent);
   } catch (error) {
-    console.error('Failed to parse AI response as JSON. Original content:', responseContent);
-    console.error('Cleaned content:', cleanedContent);
+    console.error('Failed to parse AI response as JSON. Original content length:', responseContent.length);
+    console.error('Original preview:', responseContent.substring(0, 200));
+    console.error('Cleaned content preview:', cleanedContent?.substring(0, 200));
     throw new Error('Invalid JSON response from AI provider');
   }
 }
