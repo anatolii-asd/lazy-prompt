@@ -1142,7 +1142,9 @@ const IterativeFlowView = ({
   onImprovePrompt,
   onContinueImprovement,
   setCurrentView,
-  setUserPrompt
+  setUserPrompt,
+  showingQuestions,
+  currentIterationAnswers
 }: {
   userPrompt: string;
   analysisResult: AnalyzePromptResponse | null;
@@ -1156,6 +1158,8 @@ const IterativeFlowView = ({
   onContinueImprovement: () => void;
   setCurrentView: (view: string) => void;
   setUserPrompt: (prompt: string) => void;
+  showingQuestions: boolean;
+  currentIterationAnswers: Record<string, any>;
 }) => {
   if (isLoadingAnalysis) {
     return (
@@ -1259,12 +1263,17 @@ const IterativeFlowView = ({
         )}
 
         {/* Questions Form */}
-        {currentIteration === 0 && analysisResult.suggested_questions && (
+        {showingQuestions && analysisResult.suggested_questions && (
           <div className="bg-white rounded-2xl shadow-lg p-6">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">Answer these questions to improve your prompt</h2>
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">
+              {currentIteration === 0 
+                ? "Answer these questions to improve your prompt" 
+                : `Iteration ${currentIteration + 1}: Answer questions for further improvement`
+              }
+            </h2>
             <DynamicQuestionForm
               questions={analysisResult.suggested_questions}
-              answers={userAnswers}
+              answers={currentIteration === 0 ? userAnswers : currentIterationAnswers}
               onAnswerChange={onAnswerChange}
               onSubmit={onImprovePrompt}
               isSubmitting={isImproving}
@@ -1273,7 +1282,7 @@ const IterativeFlowView = ({
         )}
 
         {/* Improvement Controls */}
-        {currentIteration > 0 && (
+        {currentIteration > 0 && !showingQuestions && (
           <div className="bg-white rounded-2xl shadow-lg p-6">
             <h2 className="text-lg font-semibold text-gray-800 mb-4">Continue Improving</h2>
             {canContinue ? (
@@ -1355,9 +1364,11 @@ const SlothPromptBoost = () => {
   const [userAnswers, setUserAnswers] = useState<Record<string, any>>({});
   const [improvedVersions, setImprovedVersions] = useState<string[]>([]);
   const [currentIteration, setCurrentIteration] = useState<number>(0);
-  const [iterativeAnswers, setIterativeAnswers] = useState<Record<string, any>[]>([]);
+  const [_iterativeAnswers, setIterativeAnswers] = useState<Record<string, any>[]>([]);
   const [isLoadingAnalysis, setIsLoadingAnalysis] = useState<boolean>(false);
   const [isImproving, setIsImproving] = useState<boolean>(false);
+  const [showingQuestions, setShowingQuestions] = useState<boolean>(true);
+  const [currentIterationAnswers, setCurrentIterationAnswers] = useState<Record<string, any>>({});
   
   const promptTextareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -1447,7 +1458,11 @@ const SlothPromptBoost = () => {
 
   // New iterative improvement flow handlers
   const handleAnswerChange = (questionKey: string, answer: any) => {
-    setUserAnswers(prev => ({ ...prev, [questionKey]: answer }));
+    if (currentIteration === 0) {
+      setUserAnswers(prev => ({ ...prev, [questionKey]: answer }));
+    } else {
+      setCurrentIterationAnswers(prev => ({ ...prev, [questionKey]: answer }));
+    }
   };
 
   const handleImprovePrompt = async () => {
@@ -1457,11 +1472,13 @@ const SlothPromptBoost = () => {
     setWizardMessage("Creating an improved version of your prompt... ✨");
     
     try {
+      const answersToUse = currentIteration === 0 ? userAnswers : currentIterationAnswers;
+      
       const request = {
         originalPrompt: userPrompt,
         improvementArea: 'comprehensive',
         answers: {
-          ...userAnswers,
+          ...answersToUse,
           previousVersions: improvedVersions,
           iterationCount: currentIteration
         }
@@ -1476,7 +1493,9 @@ const SlothPromptBoost = () => {
       if (data?.improved_prompt) {
         setImprovedVersions(prev => [...prev, data.improved_prompt]);
         setCurrentIteration(prev => prev + 1);
-        setIterativeAnswers(prev => [...prev, userAnswers]);
+        setIterativeAnswers(prev => [...prev, answersToUse]);
+        setShowingQuestions(false); // Hide questions after improvement
+        setCurrentIterationAnswers({}); // Reset for next iteration
         setWizardMessage("Your prompt has been improved! ✨");
         showNotification('Prompt improved successfully!', 'success');
       } else {
@@ -1494,42 +1513,11 @@ const SlothPromptBoost = () => {
   const handleContinueImprovement = async () => {
     if (currentIteration >= 5) return;
     
-    setIsImproving(true);
-    setWizardMessage("Applying another round of improvements... ✨");
-    
-    try {
-      const request = {
-        originalPrompt: userPrompt,
-        improvementArea: 'comprehensive',
-        answers: {
-          ...userAnswers,
-          previousVersions: improvedVersions,
-          iterationCount: currentIteration,
-          allIterativeAnswers: iterativeAnswers
-        }
-      };
-
-      const { data, error } = await promptService.improvePrompt(request);
-      
-      if (error) {
-        throw new Error(error.message || 'Failed to improve prompt');
-      }
-
-      if (data?.improved_prompt) {
-        setImprovedVersions(prev => [...prev, data.improved_prompt]);
-        setCurrentIteration(prev => prev + 1);
-        setWizardMessage(`Iteration ${currentIteration + 1} complete! ✨`);
-        showNotification(`Iteration ${currentIteration + 1} completed!`, 'success');
-      } else {
-        throw new Error('No improved prompt received');
-      }
-    } catch (error) {
-      console.error('Failed to continue improvement:', error);
-      showNotification('Failed to continue improvement. Please try again.', 'error');
-      setWizardMessage("Something went wrong with the improvement. Try again? 🔮");
-    } finally {
-      setIsImproving(false);
-    }
+    // Show questions again for next iteration
+    setShowingQuestions(true);
+    setCurrentIterationAnswers({});
+    setWizardMessage(`Iteration ${currentIteration + 1}: Answer questions to improve further! 📝`);
+    showNotification(`Starting iteration ${currentIteration + 1}`, 'info');
   };
 
   const handleGenerate = async () => {
@@ -1545,6 +1533,8 @@ const SlothPromptBoost = () => {
     setImprovedVersions([]);
     setCurrentIteration(0);
     setIterativeAnswers([]);
+    setShowingQuestions(true);
+    setCurrentIterationAnswers({});
     
     try {
       const { data, error } = await promptService.analyzePrompt({ prompt: userPrompt });
@@ -1793,6 +1783,8 @@ Laziness Score: ${preliminaryScore.laziness}/10 | Quality: ${preliminaryScore.qu
           onContinueImprovement={handleContinueImprovement}
           setCurrentView={setCurrentView}
           setUserPrompt={setUserPrompt}
+          showingQuestions={showingQuestions}
+          currentIterationAnswers={currentIterationAnswers}
         />
       )}
       {currentView === 'history' && (
