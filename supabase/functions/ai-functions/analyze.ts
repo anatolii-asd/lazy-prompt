@@ -49,38 +49,49 @@ export async function analyzePrompt(prompt: string): Promise<any> {
   const userPrompt = `Please analyze this prompt: "${prompt}"`;
   const responseContent = await ai_call(userPrompt, ANALYZE_SYSTEM_PROMPT, 'analyze');
   
+  console.log('🔍 DEBUG: Starting JSON parsing process');
+  console.log('🔍 DEBUG: Original response length:', responseContent.length);
+  console.log('🔍 DEBUG: First 50 chars:', JSON.stringify(responseContent.substring(0, 50)));
+  
+  // Clean the response - remove markdown code blocks if present
+  let cleanedContent = responseContent.trim();
+  
+  // More aggressive cleaning - find the actual JSON content
+  const jsonStart = cleanedContent.indexOf('{');
+  const jsonEnd = cleanedContent.lastIndexOf('}');
+  
+  console.log('🔍 DEBUG: JSON start position:', jsonStart);
+  console.log('🔍 DEBUG: JSON end position:', jsonEnd);
+  
+  if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
+    cleanedContent = cleanedContent.substring(jsonStart, jsonEnd + 1);
+    console.log('🔍 DEBUG: Extracted JSON length:', cleanedContent.length);
+    console.log('🔍 DEBUG: First 100 chars of extracted JSON:', cleanedContent.substring(0, 100));
+  } else {
+    console.log('❌ DEBUG: Could not find valid JSON boundaries');
+  }
+  
   try {
-    // Clean the response - remove markdown code blocks if present
-    let cleanedContent = responseContent.trim();
-    
-    console.log('🔍 DEBUG: Original response length:', responseContent.length);
-    console.log('🔍 DEBUG: First 50 chars:', JSON.stringify(responseContent.substring(0, 50)));
-    
-    // More aggressive cleaning - find the actual JSON content
-    const jsonStart = cleanedContent.indexOf('{');
-    const jsonEnd = cleanedContent.lastIndexOf('}');
-    
-    console.log('🔍 DEBUG: JSON start position:', jsonStart);
-    console.log('🔍 DEBUG: JSON end position:', jsonEnd);
-    
-    if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
-      cleanedContent = cleanedContent.substring(jsonStart, jsonEnd + 1);
-      console.log('🔍 DEBUG: Extracted JSON length:', cleanedContent.length);
-      console.log('🔍 DEBUG: First 100 chars of extracted JSON:', cleanedContent.substring(0, 100));
-    } else {
-      console.log('❌ DEBUG: Could not find valid JSON boundaries');
-    }
-    
     const result = JSON.parse(cleanedContent);
     console.log('✅ DEBUG: JSON parsing successful');
     return result;
-    
   } catch (error) {
     console.error('❌ DEBUG: JSON parsing failed');
     console.error('Error message:', error.message);
-    console.error('Original content length:', responseContent.length);
-    console.error('First 200 chars of original:', JSON.stringify(responseContent.substring(0, 200)));
-    console.error('First 200 chars of cleaned:', JSON.stringify(cleanedContent?.substring(0, 200)));
-    throw new Error('Invalid JSON response from AI provider');
+    console.error('Cleaned content preview:', cleanedContent.substring(0, 200));
+    
+    // Let's try one more approach - strip everything before { and after }
+    const lastAttempt = responseContent.slice(responseContent.indexOf('{'), responseContent.lastIndexOf('}') + 1);
+    console.log('🔄 DEBUG: Last attempt with direct slice, length:', lastAttempt.length);
+    console.log('🔄 DEBUG: Last attempt preview:', lastAttempt.substring(0, 100));
+    
+    try {
+      const lastResult = JSON.parse(lastAttempt);
+      console.log('✅ DEBUG: Last attempt successful!');
+      return lastResult;
+    } catch (finalError) {
+      console.error('❌ DEBUG: Final attempt failed:', finalError.message);
+      throw new Error('Invalid JSON response from AI provider');
+    }
   }
 }
