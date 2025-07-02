@@ -1513,11 +1513,36 @@ const SlothPromptBoost = () => {
   const handleContinueImprovement = async () => {
     if (currentIteration >= 5) return;
     
-    // Show questions again for next iteration
-    setShowingQuestions(true);
-    setCurrentIterationAnswers({});
-    setWizardMessage(`Iteration ${currentIteration + 1}: Answer questions to improve further! 📝`);
-    showNotification(`Starting iteration ${currentIteration + 1}`, 'info');
+    setIsLoadingAnalysis(true);
+    setWizardMessage(`Analyzing your improved prompt for iteration ${currentIteration + 1}... 🔍`);
+    
+    try {
+      // Get the current improved prompt to analyze
+      const currentPrompt = improvedVersions.length > 0 ? improvedVersions[improvedVersions.length - 1] : userPrompt;
+      
+      // Analyze the current improved prompt to get new questions
+      const { data, error } = await promptService.analyzePrompt({ prompt: currentPrompt });
+      
+      if (error) {
+        throw new Error(error.message || 'Failed to analyze improved prompt');
+      }
+
+      if (data) {
+        setAnalysisResult(data);
+        setShowingQuestions(true);
+        setCurrentIterationAnswers({});
+        setWizardMessage(`Iteration ${currentIteration + 1}: Answer new questions based on your improved prompt! 📝`);
+        showNotification(`New questions generated for iteration ${currentIteration + 1}`, 'info');
+      } else {
+        throw new Error('No analysis data received for improved prompt');
+      }
+    } catch (error) {
+      console.error('Failed to analyze improved prompt:', error);
+      showNotification('Failed to generate new questions. Please try again.', 'error');
+      setWizardMessage("Failed to generate new questions. Try again? 🧙‍♂️");
+    } finally {
+      setIsLoadingAnalysis(false);
+    }
   };
 
   const handleGenerate = async () => {
