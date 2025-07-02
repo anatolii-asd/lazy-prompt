@@ -2,7 +2,7 @@
 import { ai_call } from "./ai_call.ts";
 
 // System prompt for prompt improvement
-const IMPROVE_SYSTEM_PROMPT = 'You are a prompt improvement specialist. Help users enhance their prompts based on their specific requirements. Focus on creating natural, well-structured prompts that incorporate the user\'s answers seamlessly.';
+const IMPROVE_SYSTEM_PROMPT = 'You are a prompt improvement specialist. Help users enhance their prompts based on their specific requirements. Focus on creating natural, well-structured prompts that incorporate the user\'s answers seamlessly. Respond with ONLY valid JSON (no markdown formatting, no code blocks, no additional text).';
 
 /**
  * Improve a prompt based on user answers
@@ -49,7 +49,17 @@ Please provide an improved version of the prompt that incorporates these answers
   const responseContent = await ai_call(improvePrompt, IMPROVE_SYSTEM_PROMPT, 'improve');
   
   try {
-    return JSON.parse(responseContent);
+    // Clean the response - remove markdown code blocks if present
+    let cleanedContent = responseContent.trim();
+    
+    // Remove ```json and ``` if present
+    if (cleanedContent.startsWith('```json')) {
+      cleanedContent = cleanedContent.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+    } else if (cleanedContent.startsWith('```')) {
+      cleanedContent = cleanedContent.replace(/^```\s*/, '').replace(/\s*```$/, '');
+    }
+    
+    return JSON.parse(cleanedContent);
   } catch (error) {
     console.error('Failed to parse AI response as JSON:', responseContent);
     throw new Error('Invalid JSON response from AI provider');

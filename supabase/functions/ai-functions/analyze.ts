@@ -2,7 +2,7 @@
 import { ai_call } from "./ai_call.ts";
 
 // System prompt for prompt analysis
-const ANALYZE_SYSTEM_PROMPT = `You are an expert prompt engineering assistant. Your job is to analyze user prompts and provide structured feedback for improvement. You must respond in valid JSON format with the following structure:
+const ANALYZE_SYSTEM_PROMPT = `You are an expert prompt engineering assistant. Your job is to analyze user prompts and provide structured feedback for improvement. You must respond with ONLY valid JSON (no markdown formatting, no code blocks, no additional text) with the following structure:
 
 {
   "score": number (0-100),
@@ -46,7 +46,17 @@ export async function analyzePrompt(prompt: string): Promise<any> {
   const responseContent = await ai_call(userPrompt, ANALYZE_SYSTEM_PROMPT, 'analyze');
   
   try {
-    return JSON.parse(responseContent);
+    // Clean the response - remove markdown code blocks if present
+    let cleanedContent = responseContent.trim();
+    
+    // Remove ```json and ``` if present
+    if (cleanedContent.startsWith('```json')) {
+      cleanedContent = cleanedContent.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+    } else if (cleanedContent.startsWith('```')) {
+      cleanedContent = cleanedContent.replace(/^```\s*/, '').replace(/\s*```$/, '');
+    }
+    
+    return JSON.parse(cleanedContent);
   } catch (error) {
     console.error('Failed to parse AI response as JSON:', responseContent);
     throw new Error('Invalid JSON response from AI provider');
