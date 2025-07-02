@@ -50,25 +50,20 @@ Please provide an improved version of the prompt that incorporates these answers
   
   const responseContent = await ai_call(improvePrompt, IMPROVE_SYSTEM_PROMPT, 'improve');
   
+  // Extract JSON from response (handle markdown code blocks)
+  const jsonStart = responseContent.indexOf('{');
+  const jsonEnd = responseContent.lastIndexOf('}');
+  
+  if (jsonStart === -1 || jsonEnd === -1) {
+    throw new Error('No JSON found in response');
+  }
+  
+  const cleanedContent = responseContent.slice(jsonStart, jsonEnd + 1);
+  
   try {
-    // Clean the response - remove markdown code blocks if present
-    let cleanedContent = responseContent.trim();
-    
-    // More aggressive cleaning - find the actual JSON content
-    const jsonStart = cleanedContent.indexOf('{');
-    const jsonEnd = cleanedContent.lastIndexOf('}');
-    
-    if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
-      cleanedContent = cleanedContent.substring(jsonStart, jsonEnd + 1);
-    }
-    
-    console.log('Cleaned JSON content preview:', cleanedContent.substring(0, 100) + '...');
-    
     return JSON.parse(cleanedContent);
   } catch (error) {
-    console.error('Failed to parse AI response as JSON. Original content length:', responseContent.length);
-    console.error('Original preview:', responseContent.substring(0, 200));
-    console.error('Cleaned content preview:', cleanedContent?.substring(0, 200));
-    throw new Error('Invalid JSON response from AI provider');
+    console.error('JSON parsing failed:', error.message);
+    throw new Error('Invalid JSON in response');
   }
 }
