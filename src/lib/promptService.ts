@@ -64,6 +64,54 @@ export interface EnhancedPromptResponse {
   preliminary_prompt?: string
 }
 
+// New interfaces for iterative improvement flow
+export interface AnalyzePromptRequest {
+  prompt: string
+}
+
+export interface AnalyzePromptResponse {
+  score: number
+  score_label: string
+  score_explanation: string
+  quick_analysis: {
+    strengths: string[]
+    weaknesses: string[]
+  }
+  improvement_areas: Array<{
+    area: string
+    priority: string
+    icon: string
+    title: string
+    subtitle: string
+    explanation: string
+  }>
+  suggested_questions: {
+    goals: QuestionItem[]
+    context: QuestionItem[]
+    specificity: QuestionItem[]
+    format: QuestionItem[]
+  }
+}
+
+export interface QuestionItem {
+  question: string
+  type: 'text' | 'select' | 'textarea'
+  options?: string[]
+}
+
+export interface ImprovePromptRequest {
+  originalPrompt: string
+  improvementArea?: string
+  answers: Record<string, any>
+  previousVersions?: string[]
+  iterationCount?: number
+}
+
+export interface ImprovePromptResponse {
+  improved_prompt: string
+  changes_made: string[]
+}
+
 export const promptService = {
   // Save a new prompt
   async savePrompt(user: User, promptData: PromptData): Promise<{ data: Prompt | null; error: any }> {
@@ -215,6 +263,40 @@ export const promptService = {
   async enhancePrompt(request: EnhancePromptRequest): Promise<{ data: EnhancedPromptResponse | null; error: any }> {
     try {
       const { data, error } = await supabase.functions.invoke('enhance-prompt', {
+        body: request
+      })
+
+      if (error) {
+        return { data: null, error }
+      }
+
+      return { data, error: null }
+    } catch (error) {
+      return { data: null, error }
+    }
+  },
+
+  // New iterative improvement flow - analyze prompt
+  async analyzePrompt(request: AnalyzePromptRequest): Promise<{ data: AnalyzePromptResponse | null; error: any }> {
+    try {
+      const { data, error } = await supabase.functions.invoke('analyze', {
+        body: request
+      })
+
+      if (error) {
+        return { data: null, error }
+      }
+
+      return { data, error: null }
+    } catch (error) {
+      return { data: null, error }
+    }
+  },
+
+  // New iterative improvement flow - improve prompt
+  async improvePrompt(request: ImprovePromptRequest): Promise<{ data: ImprovePromptResponse | null; error: any }> {
+    try {
+      const { data, error } = await supabase.functions.invoke('improve', {
         body: request
       })
 
