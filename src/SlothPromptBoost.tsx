@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Sparkles, Zap, Copy, RefreshCw, ArrowLeft } from 'lucide-react';
+import { Sparkles, Copy, RefreshCw, ArrowLeft } from 'lucide-react';
 import { useAuth } from './contexts/AuthContext';
-import { promptService, PromptWithVersions, EnhancePromptRequest, LazyTweak, RoundQuestion, AnalyzePromptResponse, QuestionItem, ImprovePromptResponse } from './lib/promptService';
+import { promptService, PromptWithVersions, EnhancePromptRequest, LazyTweak, RoundQuestion, AnalyzePromptResponse, QuestionItem } from './lib/promptService';
 import ProfileDropdown from './components/ProfileDropdown';
 import PromptHistory from './components/PromptHistory';
 import NotificationToast from './components/NotificationToast';
@@ -435,7 +435,7 @@ const ResultsView = ({
 
 // Preliminary Result View component
 const PreliminaryResultView = ({
-  userPrompt,
+  userPrompt: _userPrompt,
   preliminaryPrompt,
   currentRound,
   detectedLanguage,
@@ -602,10 +602,10 @@ const PreliminaryResultView = ({
 
 // Three Round View component
 const ThreeRoundView = ({
-  userPrompt,
+  userPrompt: _userPrompt,
   currentRound,
   roundQuestions,
-  topicAnswers,
+  topicAnswers: _topicAnswers,
   detectedLanguage,
   isGenerating,
   onRoundComplete,
@@ -839,8 +839,6 @@ const ThreeRoundView = ({
 
 // Simple diff viewer component
 const DiffViewer = ({ originalText, newText }: { originalText: string; newText: string }) => {
-  const lines1 = originalText.split('\n');
-  const lines2 = newText.split('\n');
   
   return (
     <div className="bg-gray-50 rounded-lg p-4 space-y-2">
@@ -1259,7 +1257,6 @@ const SlothPromptBoost = () => {
     } catch (error) {
       console.error('Failed to save prompt:', error);
       showNotification('Failed to save prompt. Please try again.', 'error');
-    } finally {
     }
   };
 
@@ -1284,8 +1281,6 @@ const SlothPromptBoost = () => {
     setWizardMessage("Creating an improved version of your prompt... ✨");
     
     try {
-      const currentPrompt = improvedVersions.length > 0 ? improvedVersions[improvedVersions.length - 1] : userPrompt;
-      
       const request = {
         originalPrompt: userPrompt,
         improvementArea: 'comprehensive',
@@ -1327,8 +1322,6 @@ const SlothPromptBoost = () => {
     setWizardMessage("Applying another round of improvements... ✨");
     
     try {
-      const currentPrompt = improvedVersions[improvedVersions.length - 1];
-      
       const request = {
         originalPrompt: userPrompt,
         improvementArea: 'comprehensive',
