@@ -18,21 +18,6 @@ Respond with this exact JSON structure:
 {
   "score": number (0-100),
   "score_label": string ("Excellent", "Good", "Needs Work", "Poor"),
-  "score_explanation": string,
-  "quick_analysis": {
-    "strengths": [array of strings],
-    "weaknesses": [array of strings]
-  },
-  "improvement_areas": [
-    {
-      "area": string,
-      "priority": string ("High", "Medium", "Low"),
-      "icon": string (emoji),
-      "title": string,
-      "subtitle": string,
-      "explanation": string
-    }
-  ],
   "suggested_questions": {
     "goals": [array of question objects],
     "context": [array of question objects],
@@ -43,12 +28,17 @@ Respond with this exact JSON structure:
 
 Each question object should have: {"question": string, "type": "text|select|textarea", "options": [array] (only for select type)}
 
-Analyze the prompt for: clarity, specificity, context, defined goals, output format, role definition, examples, and constraints. Provide actionable improvement suggestions. Use these consistent icons: 🎯 Goals, 🏗️ Context, 🔍 Specificity, 📋 Format, 👤 Role, 🌐 Other.`;
+Analyze the prompt for: clarity, specificity, context, defined goals, output format, role definition, examples, and constraints. Focus on generating helpful questions that will improve the prompt.`;
 
 // System prompt for prompt improvement
-const IMPROVE_SYSTEM_PROMPT = `You are a prompt improvement specialist. Help users enhance their prompts based on their specific requirements. Focus on creating natural, well-structured prompts that incorporate the user's answers seamlessly. 
+const IMPROVE_SYSTEM_PROMPT = `You are a prompt improvement specialist. I will provide you with an original prompt and Q&A pairs that contain additional context and requirements. Your task is to create an enhanced version of the prompt that naturally incorporates all the information from the Q&A pairs.
 
-CRITICAL: You must respond with ONLY valid JSON. Do not use markdown formatting, do not wrap in code blocks, do not add any text before or after the JSON. Start your response directly with { and end with }.`;
+CRITICAL: You must respond with ONLY valid JSON. Do not use markdown formatting, do not wrap in code blocks, do not add any text before or after the JSON. Start your response directly with { and end with }.
+
+Return only:
+{
+  "improved_prompt": string
+}`;
 
 /**
  * AI call function using Gemini 2.0 Flash
@@ -141,44 +131,26 @@ async function analyzePrompt(prompt: string): Promise<any> {
 /**
  * Improve a prompt based on user answers
  */
-async function improvePrompt(originalPrompt: string, improvementArea: string, answers: any): Promise<any> {
-  let improvePrompt: string;
+async function improvePrompt(originalPrompt: string, answers: any): Promise<any> {
+  // Format all Q&A pairs into a simple list
+  let qaPairs: Array<{question: string, answer: string}> = [];
   
-  if (improvementArea === 'comprehensive') {
-    // Handle comprehensive improvement with all answers
-    const answersText = Object.entries(answers).map(([area, areaAnswers]) => {
-      const answersList = Object.entries(areaAnswers as any).map(([question, answer]) => 
-        `  Q: ${question}\n  A: ${answer}`
-      ).join('\n');
-      return `${area.toUpperCase()}:\n${answersList}`;
-    }).join('\n\n');
-
-    improvePrompt = `Given this original prompt: "${originalPrompt}"
-
-And these comprehensive user answers organized by improvement areas:
-
-${answersText}
-
-Please create an improved version of the prompt that incorporates ALL of these answers to make it more specific, contextual, and effective. The improved prompt should be natural, clear, and significantly better than the original.
-
-Return a JSON object with:
-{
-  "improved_prompt": string,
-  "changes_made": [array of strings describing what was improved]
-}`;
-  } else {
-    // Handle single area improvement (legacy support)
-    improvePrompt = `Given this original prompt: "${originalPrompt}"
-
-And these user answers for ${improvementArea}:
-${JSON.stringify(answers, null, 2)}
-
-Please provide an improved version of the prompt that incorporates these answers. Return a JSON object with:
-{
-  "improved_prompt": string,
-  "changes_made": [array of strings describing what was improved]
-}`;
+  if (typeof answers === 'object') {
+    // Extract Q&A pairs from flat structure (skip metadata fields)
+    Object.entries(answers).forEach(([key, value]) => {
+      // Skip metadata fields like previousVersions, iterationCount
+      if (key !== 'previousVersions' && key !== 'iterationCount') {
+        // Convert question ID to readable question text
+        const questionText = key.replace(/^question_\d+_/, '').replace(/_/g, ' ');
+        qaPairs.push({ question: questionText, answer: String(value) });
+      }
+    });
   }
+
+  const improvePrompt = `Original prompt: "${originalPrompt}"
+
+Q&A pairs with additional context:
+${JSON.stringify(qaPairs, null, 2)}`;
   
   const responseContent = await ai_call(improvePrompt, IMPROVE_SYSTEM_PROMPT, 'improve');
   
@@ -245,8 +217,8 @@ serve(async (req) => {
       });
       
     } else if (finalOperation === 'improve') {
-      const { originalPrompt, improvementArea, answers } = requestBody;
-      const result = await improvePrompt(originalPrompt, improvementArea, answers);
+      const { originalPrompt, answers } = requestBody;
+      const result = await improvePrompt(originalPrompt, answers);
       
       return new Response(JSON.stringify(result), {
         headers: {

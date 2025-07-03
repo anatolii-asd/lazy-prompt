@@ -1490,7 +1490,6 @@ const SlothPromptBoost = () => {
       
       const request = {
         originalPrompt: userPrompt,
-        improvementArea: 'comprehensive',
         answers: {
           ...answersToUse,
           previousVersions: improvedVersions,

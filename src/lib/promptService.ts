@@ -72,19 +72,6 @@ export interface AnalyzePromptRequest {
 export interface AnalyzePromptResponse {
   score: number
   score_label: string
-  score_explanation: string
-  quick_analysis: {
-    strengths: string[]
-    weaknesses: string[]
-  }
-  improvement_areas: Array<{
-    area: string
-    priority: string
-    icon: string
-    title: string
-    subtitle: string
-    explanation: string
-  }>
   suggested_questions: {
     goals: QuestionItem[]
     context: QuestionItem[]
@@ -101,7 +88,6 @@ export interface QuestionItem {
 
 export interface ImprovePromptRequest {
   originalPrompt: string
-  improvementArea?: string
   answers: Record<string, any>
   previousVersions?: string[]
   iterationCount?: number
@@ -109,7 +95,6 @@ export interface ImprovePromptRequest {
 
 export interface ImprovePromptResponse {
   improved_prompt: string
-  changes_made: string[]
 }
 
 export const promptService = {
