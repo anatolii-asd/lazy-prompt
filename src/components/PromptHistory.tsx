@@ -16,6 +16,7 @@ export default function PromptHistory({ onBack, onLoadPrompt }: PromptHistoryPro
   const [error, setError] = useState('')
   const [expandedPrompts, setExpandedPrompts] = useState<Set<string>>(new Set())
   const [promptVersions, setPromptVersions] = useState<Record<string, Prompt[]>>({})
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null)
 
   useEffect(() => {
     if (user) {
@@ -52,16 +53,13 @@ export default function PromptHistory({ onBack, onLoadPrompt }: PromptHistoryPro
   }
 
   const handleDeletePrompt = async (promptId: string) => {
-    if (!confirm('Are you sure you want to delete this prompt and all its versions?')) {
-      return
-    }
-
     try {
       const { error } = await promptService.deletePrompt(promptId)
       if (error) throw error
       
       // Remove from local state
       setPrompts(prev => prev.filter(p => p.id !== promptId))
+      setShowDeleteConfirm(null)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete prompt')
     }
@@ -158,7 +156,7 @@ export default function PromptHistory({ onBack, onLoadPrompt }: PromptHistoryPro
               disabled={loading}
               className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-lg font-medium hover:from-purple-700 hover:to-pink-700 transition disabled:opacity-50"
             >
-              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Search'}
+{loading ? <Loader2 className="w-5 h-5 animate-spin" /> : '🦉 Search'}
             </button>
           </form>
         </div>
@@ -285,7 +283,7 @@ export default function PromptHistory({ onBack, onLoadPrompt }: PromptHistoryPro
                     
                     <div className="flex items-center gap-2">
                       <button
-                        onClick={() => handleDeletePrompt(prompt.id)}
+                        onClick={() => setShowDeleteConfirm(prompt.id)}
                         className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
                         title="Delete prompt"
                       >
@@ -295,8 +293,7 @@ export default function PromptHistory({ onBack, onLoadPrompt }: PromptHistoryPro
                         onClick={() => onLoadPrompt(prompt)}
                         className="flex items-center bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-2 rounded-lg font-medium hover:from-purple-700 hover:to-pink-700 transition group-hover:shadow-md"
                       >
-                        <Play className="w-4 h-4 mr-2" />
-                        Load Prompt
+🕯️ 📖 Load Prompt
                       </button>
                     </div>
                   </div>
@@ -312,6 +309,37 @@ export default function PromptHistory({ onBack, onLoadPrompt }: PromptHistoryPro
             <button className="text-purple-600 hover:text-purple-700 font-medium">
               Load more prompts...
             </button>
+          </div>
+        )}
+
+        {/* Delete Confirmation Popup */}
+        {showDeleteConfirm && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 transform animate-in zoom-in-95 duration-200">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <span className="text-3xl">🍄</span>
+                </div>
+                <h3 className="text-xl font-bold text-gray-800 mb-2">Delete Prompt?</h3>
+                <p className="text-gray-600 mb-6">
+                  Are you sure you want to delete this prompt and all its versions? This action cannot be undone.
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowDeleteConfirm(null)}
+                    className="flex-1 bg-gray-100 text-gray-700 px-4 py-3 rounded-lg font-medium hover:bg-gray-200 transition"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => handleDeletePrompt(showDeleteConfirm)}
+                    className="flex-1 bg-gradient-to-r from-red-600 to-red-700 text-white px-4 py-3 rounded-lg font-medium hover:from-red-700 hover:to-red-800 transition"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </div>
