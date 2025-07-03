@@ -79,7 +79,7 @@ const HomeView = ({
           <button
             onClick={handleGenerate}
             disabled={!userPrompt.trim() || isGenerating}
-            className="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xl font-bold py-4 px-12 rounded-2xl hover:from-purple-700 hover:to-pink-700 transform hover:scale-105 transition-all shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+            className="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-base sm:text-xl font-bold py-3 sm:py-4 px-6 sm:px-12 rounded-2xl hover:from-purple-700 hover:to-pink-700 transform hover:scale-105 transition-all shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
           >
             {isGenerating ? (
               <div className="flex items-center">
@@ -88,7 +88,7 @@ const HomeView = ({
               </div>
             ) : (
               <div className="flex items-center">
-                <div className="mr-3 text-2xl">🧙‍♂️</div>
+                <div className="mr-2 sm:mr-3 text-xl sm:text-2xl">🧙‍♂️</div>
                 Start Creating My Prompt! ✨
               </div>
             )}
@@ -121,11 +121,30 @@ const ResultsView = ({
   handleSavePrompt,
   handleContinueImprovement,
   currentIteration,
-  improvedVersions
+  improvedVersions,
+  versionHistory,
+  setVersionHistory,
+  isSaving,
+  showSaveSuccess,
+  setShowSaveSuccess,
+  showCopySuccess,
+  setShowCopySuccess
 }: any) => {
-  const [versionHistory, setVersionHistory] = useState<any[]>([]);
   const [loadingVersions, setLoadingVersions] = useState(false);
   const [isVersionHistoryExpanded, setIsVersionHistoryExpanded] = useState(false);
+  const [expandedVersions, setExpandedVersions] = useState<Set<string>>(new Set());
+
+  const toggleVersionExpansion = (versionId: string) => {
+    setExpandedVersions(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(versionId)) {
+        newSet.delete(versionId);
+      } else {
+        newSet.add(versionId);
+      }
+      return newSet;
+    });
+  };
 
   // Load version history when component mounts or savedPromptId changes
   useEffect(() => {
@@ -152,11 +171,17 @@ const ResultsView = ({
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
-    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+    const diffInMs = now.getTime() - date.getTime();
+    const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
+    const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+    const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+    const diffInWeeks = Math.floor(diffInDays / 7);
 
-    if (diffInHours < 1) return 'Just now';
+    if (diffInMinutes < 1) return 'Just now';
+    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
     if (diffInHours < 24) return `${diffInHours}h ago`;
-    if (diffInHours < 168) return `${Math.floor(diffInHours / 24)}d ago`;
+    if (diffInDays < 7) return `${diffInDays}d ago`;
+    if (diffInWeeks < 4) return `${diffInWeeks}w ago`;
     return date.toLocaleDateString();
   };
 
@@ -198,21 +223,23 @@ const ResultsView = ({
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-6">
+      <div className="max-w-4xl mx-auto">
         {/* Enhanced Prompt */}
-        <div className="lg:col-span-2">
+        <div>
           <div className="bg-white rounded-3xl shadow-xl overflow-hidden">
             <div className="bg-gradient-to-r from-green-400 to-blue-500 p-4">
               <h3 className="text-white text-xl font-bold flex items-center">
-                <Sparkles className="w-6 h-6 mr-2" />
-                Your Enchanted Prompt ✨
+                🔮Your Enchanted Prompt💫
               </h3>
             </div>
             <div className="p-6">
               {/* Editable prompt area */}
               <textarea
                 value={generatedPrompt}
-                onChange={(e) => setGeneratedPrompt(e.target.value)}
+                onChange={(e) => {
+                  setGeneratedPrompt(e.target.value);
+                  setShowSaveSuccess(false);
+                }}
                 className="w-full bg-gray-50 rounded-2xl p-4 font-mono text-sm leading-relaxed mb-4 min-h-[300px] max-h-[500px] resize-y border-2 border-gray-200 focus:border-purple-400 focus:ring-2 focus:ring-purple-200 outline-none transition-all"
                 placeholder="Your magical prompt will appear here..."
               />
@@ -220,33 +247,75 @@ const ResultsView = ({
               {/* Copy and Save buttons */}
               <div className="grid grid-cols-2 gap-3">
                 <button 
-                  onClick={() => navigator.clipboard.writeText(generatedPrompt)}
-                  className="flex items-center justify-center space-x-2 bg-green-500 text-white px-4 py-3 rounded-xl hover:bg-green-600 transition-colors font-medium shadow-md"
+                  onClick={async () => {
+                    await navigator.clipboard.writeText(generatedPrompt);
+                    setShowCopySuccess(true);
+                    setTimeout(() => {
+                      setShowCopySuccess(false);
+                    }, 2500);
+                  }}
+                  className={`flex items-center justify-center space-x-2 px-4 py-3 rounded-xl font-medium shadow-md transition-all duration-300 ${
+                    showCopySuccess 
+                      ? 'bg-green-600 text-white transform scale-105' 
+                      : 'bg-green-500 text-white hover:bg-green-600'
+                  }`}
                 >
-                  <Copy className="w-4 h-4" />
-                  <span>Copy</span>
+                  {showCopySuccess ? (
+                    <>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span>✅ Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-4 h-4" />
+                      <span>Copy</span>
+                    </>
+                  )}
                 </button>
                 <button 
                   onClick={handleSavePrompt}
-                  disabled={!user || !generatedPrompt}
-                  className="flex items-center justify-center space-x-2 bg-blue-500 text-white px-4 py-3 rounded-xl hover:bg-blue-600 transition-colors font-medium shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={!user || !generatedPrompt || isSaving}
+                  className={`flex items-center justify-center space-x-2 px-4 py-3 rounded-xl font-medium shadow-md transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed ${
+                    showSaveSuccess 
+                      ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg transform scale-105' 
+                      : 'bg-blue-500 text-white hover:bg-blue-600'
+                  }`}
                 >
-                  <span>Save</span>
+                  <span>
+                    {isSaving ? 'Saving...' : showSaveSuccess ? '✨ Saved!' : 'Save'}
+                  </span>
                 </button>
               </div>
             </div>
           </div>
           
-          {/* Action buttons - separated */}
-          <div className="bg-white rounded-3xl shadow-xl mt-6 p-6 space-y-3">
+          {/* Improve Further Button */}
+          <div className="bg-white rounded-3xl shadow-xl mt-6 p-6">
             <button 
               onClick={handleContinueImprovement}
               disabled={isImproving || currentIteration >= 5}
-              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 px-6 rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all font-medium shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white text-base sm:text-xl font-bold py-3 sm:py-4 px-6 sm:px-12 rounded-2xl hover:from-purple-700 hover:to-pink-700 transform hover:scale-105 transition-all shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
             >
-              {currentIteration >= 5 ? 'Maximum Iterations Reached' : 'Run One More Improvement'}
+              {currentIteration >= 5 ? (
+                'Maximum Iterations Reached'
+              ) : isImproving ? (
+                <div className="flex items-center justify-center">
+                  <div className="animate-spin mr-3">🧙‍♂️</div>
+                  Improving...
+                </div>
+              ) : (
+                <div className="flex items-center justify-center">
+                  <div className="mr-2 sm:mr-3 text-xl sm:text-2xl">🧙‍♂️</div>
+                  Improve Further ✨
+                </div>
+              )}
             </button>
-            
+          </div>
+          
+          {/* Start New Prompt Button */}
+          <div className="bg-white rounded-3xl shadow-xl mt-6 p-6">
             <button 
               onClick={() => {
                 setUserPrompt('');
@@ -261,7 +330,7 @@ const ResultsView = ({
               }}
               className="w-full bg-gradient-to-r from-green-500 to-blue-600 text-white py-3 px-6 rounded-xl hover:from-green-600 hover:to-blue-700 transition-all font-medium shadow-md"
             >
-              Run New Prompt
+              🐦‍🔥Start Over 🧚‍♀️
             </button>
           </div>
 
@@ -275,7 +344,7 @@ const ResultsView = ({
               >
                 <h4 className="text-xl font-bold text-gray-800 flex items-center justify-between">
                   <div className="flex items-center">
-                    📚 Version History 
+                    📜 Version History 
                     <span className="ml-2 text-sm bg-purple-100 text-purple-700 px-2 py-1 rounded-full">
                       {versionHistory.length} versions
                     </span>
@@ -304,37 +373,53 @@ const ResultsView = ({
                       <p className="text-gray-600">Loading versions...</p>
                     </div>
                   ) : (
-                    <div className="space-y-4 mt-4">
+                    <div className="space-y-2 mt-4">
                       {versionHistory.map((version, index) => (
-                    <div key={version.id} className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-3">
-                          <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-medium">
-                            Version {version.version}
-                          </span>
-                          {index === 0 && (
-                            <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium">
-                              Current
+                    <div key={version.id} className="border border-gray-200 rounded-xl overflow-hidden">
+                      <button
+                        onClick={() => toggleVersionExpansion(version.id)}
+                        className="w-full p-4 hover:bg-gray-50 transition-colors"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <span className="text-gray-700 font-medium">
+                              Version {version.version}
                             </span>
-                          )}
+                            {version.version === Math.max(...versionHistory.map(v => v.version)) && (
+                              <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium">
+                                Current
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="text-sm text-gray-500">{formatDate(version.created_at)}</span>
+                            <div className={`transform transition-transform ${expandedVersions.has(version.id) ? 'rotate-180' : ''}`}>
+                              <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                              </svg>
+                            </div>
+                          </div>
                         </div>
-                        <span className="text-sm text-gray-500">{formatDate(version.created_at)}</span>
-                      </div>
+                      </button>
                       
-                      <div className="grid md:grid-cols-2 gap-4">
-                        <div>
-                          <h5 className="text-sm font-medium text-gray-700 mb-2">Original Input:</h5>
-                          <p className="text-sm text-gray-600 bg-gray-50 rounded-lg p-3">
-                            {truncateText(version.original_input, 120)}
-                          </p>
-                        </div>
-                        <div>
-                          <h5 className="text-sm font-medium text-gray-700 mb-2">Generated Prompt:</h5>
-                          <p className="text-sm text-gray-600 bg-gray-50 rounded-lg p-3">
-                            {truncateText(version.generated_prompt, 120)}
-                          </p>
-                        </div>
-                      </div>
+                      <AnimatePresence>
+                        {expandedVersions.has(version.id) && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.3 }}
+                            className="overflow-hidden border-t border-gray-100"
+                          >
+                            <div className="p-4 bg-gray-50">
+                              <h5 className="text-sm font-medium text-gray-700 mb-2">Generated Prompt:</h5>
+                              <p className="text-sm text-gray-600 bg-white rounded-lg p-3 border border-gray-200">
+                                {version.generated_prompt}
+                              </p>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
                   ))}
                     </div>
@@ -345,32 +430,6 @@ const ResultsView = ({
               </AnimatePresence>
             </div>
           )}
-        </div>
-
-        {/* Sidebar */}
-        <div className="space-y-6">
-          {/* Wizard Stats */}
-          <div className="bg-gradient-to-br from-purple-100 to-pink-100 rounded-3xl p-6 border-2 border-purple-200">
-            <h4 className="text-lg font-bold text-gray-800 mb-4 text-center">Wizard Stats 📊</h4>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Iterations</span>
-                <span className="font-bold text-purple-600">{iterationNumber}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Wisdom Level</span>
-                <span className="font-bold text-green-600">Legendary! 🧙‍♂️</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Prompt Quality</span>
-                <span className="font-bold text-blue-600">+500% ⚡</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Magic Used</span>
-                <span className="font-bold text-purple-600">Infinite Power 🌟</span>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
@@ -1275,24 +1334,6 @@ const IterativeFlowView = ({
           )}
         </div>
 
-        {/* Show improved versions with diff */}
-        {improvedVersions.length > 0 && (
-          <div className="bg-white rounded-2xl shadow-lg p-6">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">Improvement History</h2>
-            <div className="space-y-4">
-              {improvedVersions.map((version, index) => {
-                const previousVersion = index === 0 ? userPrompt : improvedVersions[index - 1];
-                return (
-                  <div key={index} className="border border-gray-200 rounded-lg p-4">
-                    <h3 className="font-medium text-gray-700 mb-2">Iteration {index + 1}</h3>
-                    <DiffViewer originalText={previousVersion} newText={version} />
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
         {/* Questions Form */}
         {showingQuestions && analysisResult.suggested_questions && (
           <div className="bg-white rounded-2xl shadow-lg p-6">
@@ -1373,6 +1414,10 @@ const SlothPromptBoost = () => {
   const [wizardMessage, setWizardMessage] = useState("Let us weave magic into your words! 🧙‍♂️");
   const [promptCount, setPromptCount] = useState(0);
   const [savedPromptId, setSavedPromptId] = useState<string | null>(null);
+  const [versionHistory, setVersionHistory] = useState<any[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
+  const [showSaveSuccess, setShowSaveSuccess] = useState(false);
+  const [showCopySuccess, setShowCopySuccess] = useState(false);
   
   // Three-round mode state
   const [currentRound, setCurrentRound] = useState<number>(1);
@@ -1436,6 +1481,20 @@ const SlothPromptBoost = () => {
   const handleSavePrompt = async () => {
     if (!user || !generatedPrompt) return;
 
+    // Check if the current prompt is different from the latest saved version
+    if (versionHistory.length > 0) {
+      const latestVersion = versionHistory.reduce((latest, current) => 
+        current.version > latest.version ? current : latest
+      );
+      
+      if (latestVersion.generated_prompt === generatedPrompt) {
+        console.log('No changes detected - prompt is identical to latest version');
+        return;
+      }
+    }
+
+    setIsSaving(true);
+    
     try {
       const promptData = {
         originalInput: userPrompt,
@@ -1456,9 +1515,24 @@ const SlothPromptBoost = () => {
       const promptId = data?.parent_id || data?.id || null;
       setSavedPromptId(promptId);
       console.log('Saved prompt with ID:', promptId, 'Data:', data);
+      
+      // Trigger success animation
+      setIsSaving(false);
+      setShowSaveSuccess(true);
+      
+      // Reload version history
+      if (promptId) {
+        const { data: versions } = await promptService.getPromptVersions(promptId);
+        if (versions) {
+          setVersionHistory(versions);
+        }
+      }
+      
       await loadPromptCount(); // Refresh count
+      
     } catch (error) {
       console.error('Failed to save prompt:', error);
+      setIsSaving(false);
     }
   };
 
@@ -1488,13 +1562,31 @@ const SlothPromptBoost = () => {
     try {
       const answersToUse = currentIteration === 0 ? userAnswers : currentIterationAnswers;
       
+      // Build questions_and_answers array with full question text
+      const questionsAndAnswers: Array<{question: string, answer: string}> = [];
+      
+      if (analysisResult?.suggested_questions) {
+        const allQuestions = [
+          ...analysisResult.suggested_questions.goals || [],
+          ...analysisResult.suggested_questions.context || [],
+          ...analysisResult.suggested_questions.specificity || [],
+          ...analysisResult.suggested_questions.format || []
+        ];
+        
+        allQuestions.forEach((questionObj, index) => {
+          const questionKey = `question_${index}_${questionObj.question.substring(0, 20).replace(/\s+/g, '_')}`;
+          if (answersToUse[questionKey]) {
+            questionsAndAnswers.push({
+              question: questionObj.question,
+              answer: String(answersToUse[questionKey])
+            });
+          }
+        });
+      }
+      
       const request = {
-        originalPrompt: userPrompt,
-        answers: {
-          ...answersToUse,
-          previousVersions: improvedVersions,
-          iterationCount: currentIteration
-        }
+        prompt_to_improve: userPrompt,
+        questions_and_answers: questionsAndAnswers
       };
 
       const { data, error } = await promptService.improvePrompt(request);
@@ -1510,6 +1602,41 @@ const SlothPromptBoost = () => {
         setCurrentIterationAnswers({}); // Reset for next iteration
         setGeneratedPrompt(data.improved_prompt); // Set the improved prompt as generated
         setWizardMessage("Your prompt has been improved! ✨");
+        
+        // Auto-save the improved prompt to database
+        if (user) {
+          try {
+            const promptData = {
+              originalInput: userPrompt,
+              generatedPrompt: data.improved_prompt,
+              lazinessLevel: 'regular' as const,
+              questionsData: null,
+              parentId: savedPromptId,
+              version: undefined // Will be calculated by service
+            };
+
+            const { data: saveData, error: saveError } = await promptService.savePrompt(user, promptData);
+            
+            if (!saveError && saveData) {
+              // Update savedPromptId if this is the first save
+              const promptId = saveData.parent_id || saveData.id || null;
+              if (!savedPromptId) {
+                setSavedPromptId(promptId);
+              }
+              
+              // Refresh version history
+              if (promptId) {
+                const { data: versions } = await promptService.getPromptVersions(promptId);
+                if (versions) {
+                  setVersionHistory(versions);
+                }
+              }
+            }
+          } catch (saveError) {
+            console.error('Failed to auto-save improved prompt:', saveError);
+          }
+        }
+        
         setCurrentView('results'); // Go directly to results page
       } else {
         throw new Error('No improved prompt received');
@@ -1525,12 +1652,27 @@ const SlothPromptBoost = () => {
   const handleContinueImprovement = async () => {
     if (currentIteration >= 5) return;
     
+    setIsImproving(true);
     setIsLoadingAnalysis(true);
     setWizardMessage(`Analyzing your improved prompt for iteration ${currentIteration + 1}... 🔍`);
     
     try {
-      // Get the current improved prompt to analyze
-      const currentPrompt = improvedVersions.length > 0 ? improvedVersions[improvedVersions.length - 1] : userPrompt;
+      // Get the latest version from database
+      let currentPrompt = userPrompt;
+      
+      if (savedPromptId) {
+        const { data: versions } = await promptService.getPromptVersions(savedPromptId);
+        if (versions && versions.length > 0) {
+          // Find the version with the highest version number
+          const latestVersion = versions.reduce((latest, current) => 
+            current.version > latest.version ? current : latest
+          );
+          currentPrompt = latestVersion.generated_prompt;
+        }
+      } else if (improvedVersions.length > 0) {
+        // Fallback to in-memory versions if no saved ID
+        currentPrompt = improvedVersions[improvedVersions.length - 1];
+      }
       
       // Analyze the current improved prompt to get new questions
       const { data, error } = await promptService.analyzePrompt({ prompt: currentPrompt });
@@ -1545,6 +1687,7 @@ const SlothPromptBoost = () => {
         setCurrentIterationAnswers({});
         setCurrentView('iterative'); // Switch back to iterative view
         setWizardMessage(`Iteration ${currentIteration + 1}: Answer new questions based on your improved prompt! 📝`);
+        setIsImproving(false);
       } else {
         throw new Error('No analysis data received for improved prompt');
       }
@@ -1553,6 +1696,7 @@ const SlothPromptBoost = () => {
       setWizardMessage("Failed to generate new questions. Try again? 🧙‍♂️");
     } finally {
       setIsLoadingAnalysis(false);
+      setIsImproving(false);
     }
   };
 
@@ -1740,6 +1884,13 @@ Laziness Score: ${preliminaryScore.laziness}/10 | Quality: ${preliminaryScore.qu
           handleContinueImprovement={handleContinueImprovement}
           currentIteration={currentIteration}
           improvedVersions={improvedVersions}
+          versionHistory={versionHistory}
+          setVersionHistory={setVersionHistory}
+          isSaving={isSaving}
+          showSaveSuccess={showSaveSuccess}
+          setShowSaveSuccess={setShowSaveSuccess}
+          showCopySuccess={showCopySuccess}
+          setShowCopySuccess={setShowCopySuccess}
         />
       )}
       {currentView === 'three-round' && (
@@ -1786,6 +1937,13 @@ Laziness Score: ${preliminaryScore.laziness}/10 | Quality: ${preliminaryScore.qu
           setGeneratedPrompt={setGeneratedPrompt}
           showingQuestions={showingQuestions}
           currentIterationAnswers={currentIterationAnswers}
+          versionHistory={versionHistory}
+          setVersionHistory={setVersionHistory}
+          isSaving={isSaving}
+          showSaveSuccess={showSaveSuccess}
+          setShowSaveSuccess={setShowSaveSuccess}
+          showCopySuccess={showCopySuccess}
+          setShowCopySuccess={setShowCopySuccess}
         />
       )}
       {currentView === 'history' && (

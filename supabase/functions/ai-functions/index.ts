@@ -131,26 +131,11 @@ async function analyzePrompt(prompt: string): Promise<any> {
 /**
  * Improve a prompt based on user answers
  */
-async function improvePrompt(originalPrompt: string, answers: any): Promise<any> {
-  // Format all Q&A pairs into a simple list
-  let qaPairs: Array<{question: string, answer: string}> = [];
-  
-  if (typeof answers === 'object') {
-    // Extract Q&A pairs from flat structure (skip metadata fields)
-    Object.entries(answers).forEach(([key, value]) => {
-      // Skip metadata fields like previousVersions, iterationCount
-      if (key !== 'previousVersions' && key !== 'iterationCount') {
-        // Convert question ID to readable question text
-        const questionText = key.replace(/^question_\d+_/, '').replace(/_/g, ' ');
-        qaPairs.push({ question: questionText, answer: String(value) });
-      }
-    });
-  }
-
-  const improvePrompt = `Original prompt: "${originalPrompt}"
+async function improvePrompt(promptToImprove: string, questionsAndAnswers: Array<{question: string, answer: string}>): Promise<any> {
+  const improvePrompt = `Original prompt: "${promptToImprove}"
 
 Q&A pairs with additional context:
-${JSON.stringify(qaPairs, null, 2)}`;
+${JSON.stringify(questionsAndAnswers, null, 2)}`;
   
   const responseContent = await ai_call(improvePrompt, IMPROVE_SYSTEM_PROMPT, 'improve');
   
@@ -217,8 +202,8 @@ serve(async (req) => {
       });
       
     } else if (finalOperation === 'improve') {
-      const { originalPrompt, answers } = requestBody;
-      const result = await improvePrompt(originalPrompt, answers);
+      const { prompt_to_improve, questions_and_answers } = requestBody;
+      const result = await improvePrompt(prompt_to_improve, questions_and_answers);
       
       return new Response(JSON.stringify(result), {
         headers: {

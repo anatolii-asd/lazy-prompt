@@ -87,10 +87,8 @@ export interface QuestionItem {
 }
 
 export interface ImprovePromptRequest {
-  originalPrompt: string
-  answers: Record<string, any>
-  previousVersions?: string[]
-  iterationCount?: number
+  prompt_to_improve: string
+  questions_and_answers: Array<{question: string, answer: string}>
 }
 
 export interface ImprovePromptResponse {
