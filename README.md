@@ -1,4 +1,4 @@
-# WizardBoost 🧙‍♂️
+# Prompt Wizard III 🧙‍♂️
 
 Where wisdom meets your creative prompts!
 

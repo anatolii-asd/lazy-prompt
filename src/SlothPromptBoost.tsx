@@ -5,7 +5,6 @@ import { useAuth } from './contexts/AuthContext';
 import { promptService, PromptWithVersions, EnhancePromptRequest, RoundQuestion, AnalyzePromptResponse, QuestionItem } from './lib/promptService';
 import ProfileDropdown from './components/ProfileDropdown';
 import PromptHistory from './components/PromptHistory';
-import NotificationToast from './components/NotificationToast';
 
 const wizardQuotes = [
   "Why struggle when magic can guide your way? 🧙‍♂️",
@@ -22,7 +21,7 @@ const Header = ({ promptCount, onShowHistory }: { promptCount: number; onShowHis
       <div className="flex items-center space-x-2">
         <span className="text-2xl">🧙‍♂️</span>
         <h1 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-          WizardBoost
+          Prompt Wizard III
         </h1>
       </div>
       <ProfileDropdown promptCount={promptCount} onShowHistory={onShowHistory} />
@@ -45,7 +44,7 @@ const HomeView = ({
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-800 mb-2">
-            🧙‍♂️ WizardBoost
+            🧙‍♂️ Prompt Wizard III
           </h1>
           <p className="text-xl text-gray-600 mb-4">Where wisdom meets your creative prompts</p>
           <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-4 max-w-md mx-auto border border-gray-200">
@@ -71,25 +70,6 @@ const HomeView = ({
             
             <div className="mt-4 text-sm text-gray-500 text-center">
               💡 Pro tip: We'll ask you smart questions to make your prompt perfect!
-            </div>
-          </div>
-
-          {/* How it works */}
-          <div className="mt-8 bg-white/80 backdrop-blur-sm rounded-3xl p-6 shadow-lg border border-gray-200">
-            <h3 className="text-lg font-bold text-gray-800 mb-4 text-center">How it works 🎯</h3>
-            <div className="grid md:grid-cols-3 gap-4">
-              <div className="text-center">
-                <div className="text-2xl mb-2">1️⃣</div>
-                <p className="text-sm text-gray-600">Answer 6 basic questions</p>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl mb-2">2️⃣</div>
-                <p className="text-sm text-gray-600">Review & optionally refine</p>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl mb-2">3️⃣</div>
-                <p className="text-sm text-gray-600">Get your perfect prompt!</p>
-              </div>
             </div>
           </div>
         </div>
@@ -872,12 +852,48 @@ const SingleQuestionForm = ({
   isSubmitting: boolean;
 }) => {
   const [localAnswer, setLocalAnswer] = useState(answer || '');
+  const [showCustomInput, setShowCustomInput] = useState(false);
+  const [customValue, setCustomValue] = useState('');
 
   useEffect(() => {
     setLocalAnswer(answer || '');
-  }, [answer]);
+    // Check if the current answer is a custom value (not in filtered options)
+    if (question.type === 'select' && question.options && answer) {
+      const filteredOptions = question.options.filter(option => {
+        const lowerOption = option.toLowerCase().trim();
+        return !lowerOption.includes('other') && 
+               !lowerOption.includes('custom') &&
+               lowerOption !== 'інше' && 
+               lowerOption !== 'власний варіант';
+      });
+      
+      if (!filteredOptions.includes(answer)) {
+        setShowCustomInput(true);
+        setCustomValue(answer);
+      } else {
+        setShowCustomInput(false);
+        setCustomValue('');
+      }
+    } else {
+      setShowCustomInput(false);
+      setCustomValue('');
+    }
+  }, [answer, question]);
 
   const handleLocalChange = (value: any) => {
+    if (value === '__custom__') {
+      setShowCustomInput(true);
+      setLocalAnswer('');
+    } else {
+      setShowCustomInput(false);
+      setCustomValue('');
+      setLocalAnswer(value);
+      onAnswerChange(value);
+    }
+  };
+
+  const handleCustomInputChange = (value: string) => {
+    setCustomValue(value);
     setLocalAnswer(value);
     onAnswerChange(value);
   };
@@ -936,19 +952,55 @@ const SingleQuestionForm = ({
         
         {question.type === 'select' && question.options && (
           <div className="space-y-3">
-            {question.options.map((option, optionIndex) => (
+            {question.options
+              .filter(option => {
+                // Filter out any variation of "other" or "custom" options
+                const lowerOption = option.toLowerCase().trim();
+                return !lowerOption.includes('other') && 
+                       !lowerOption.includes('custom') &&
+                       lowerOption !== 'інше' && // Ukrainian for "other"
+                       lowerOption !== 'власний варіант'; // Ukrainian for "custom option"
+              })
+              .map((option, optionIndex) => (
               <label key={optionIndex} className="flex items-center space-x-3 cursor-pointer p-3 rounded-lg hover:bg-gray-50 transition-colors">
                 <input
                   type="radio"
                   name={questionKey}
                   value={option}
-                  checked={localAnswer === option}
+                  checked={localAnswer === option && !showCustomInput}
                   onChange={(e) => handleLocalChange(e.target.value)}
                   className="text-purple-600 focus:ring-purple-500"
                 />
                 <span className="text-gray-700">{option}</span>
               </label>
             ))}
+            
+            {/* Custom option */}
+            <label className="flex items-center space-x-3 cursor-pointer p-3 rounded-lg hover:bg-gray-50 transition-colors">
+              <input
+                type="radio"
+                name={questionKey}
+                value="__custom__"
+                checked={showCustomInput}
+                onChange={(e) => handleLocalChange(e.target.value)}
+                className="text-purple-600 focus:ring-purple-500"
+              />
+              <span className="text-gray-700">✨ Custom answer</span>
+            </label>
+            
+            {/* Custom input field */}
+            {showCustomInput && (
+              <div className="ml-7 mt-2">
+                <input
+                  type="text"
+                  value={customValue}
+                  onChange={(e) => handleCustomInputChange(e.target.value)}
+                  placeholder="Enter your custom answer..."
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-700"
+                  autoFocus
+                />
+              </div>
+            )}
           </div>
         )}
 
@@ -1204,28 +1256,20 @@ const IterativeFlowView = ({
           </div>
           
           <h1 className="text-2xl font-bold text-gray-800 mb-2">
-            🧙‍♂️ Iterative Prompt Improvement
+            🧙‍♂️ The Wizard's Enhancement Chamber
           </h1>
-          <p className="text-gray-600">
-            Answer the questions below to improve your prompt through multiple iterations.
+          <p className="text-gray-600 italic mb-3">
+            "Answer my mystical inquiries, and I shall weave your words into legendary prompts!"
           </p>
-        </div>
-
-        {/* Current Prompt Display */}
-        <div className="bg-white rounded-2xl shadow-lg p-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-3">Current Prompt</h2>
-          <div className="bg-gray-50 rounded-lg p-4">
-            <p className="text-gray-700 whitespace-pre-wrap">{currentPrompt}</p>
-          </div>
+          
+          {/* Simple Stats Labels */}
           {analysisResult && (
-            <div className="mt-4 flex items-center space-x-4 text-sm">
-              <div className="flex items-center space-x-1">
-                <span className="text-gray-600">Score:</span>
-                <span className="font-semibold text-purple-600">{analysisResult.score}/100</span>
+            <div className="flex gap-4 text-sm">
+              <div className="text-gray-700">
+                <span className="font-semibold">Prompt Score:</span> <span className="text-purple-600 font-bold">{analysisResult.score}/100</span>
               </div>
-              <div className="flex items-center space-x-1">
-                <span className="text-gray-600">Quality:</span>
-                <span className="font-semibold text-blue-600">{analysisResult.score_label}</span>
+              <div className="text-gray-700">
+                <span className="font-semibold">Prompt Rank:</span> <span className="text-blue-600 font-bold">{analysisResult.score_label}</span>
               </div>
             </div>
           )}
@@ -1329,11 +1373,6 @@ const SlothPromptBoost = () => {
   const [wizardMessage, setWizardMessage] = useState("Let us weave magic into your words! 🧙‍♂️");
   const [promptCount, setPromptCount] = useState(0);
   const [savedPromptId, setSavedPromptId] = useState<string | null>(null);
-  const [notification, setNotification] = useState<{
-    message: string;
-    type: 'success' | 'error' | 'warning' | 'info';
-    isVisible: boolean;
-  }>({ message: '', type: 'info', isVisible: false });
   
   // Three-round mode state
   const [currentRound, setCurrentRound] = useState<number>(1);
@@ -1393,13 +1432,6 @@ const SlothPromptBoost = () => {
     }
   };
 
-  const showNotification = (message: string, type: 'success' | 'error' | 'warning' | 'info') => {
-    setNotification({ message, type, isVisible: true });
-  };
-
-  const hideNotification = () => {
-    setNotification(prev => ({ ...prev, isVisible: false }));
-  };
 
   const handleSavePrompt = async () => {
     if (!user || !generatedPrompt) return;
@@ -1425,10 +1457,8 @@ const SlothPromptBoost = () => {
       setSavedPromptId(promptId);
       console.log('Saved prompt with ID:', promptId, 'Data:', data);
       await loadPromptCount(); // Refresh count
-      showNotification('Prompt saved successfully! 🎉', 'success');
     } catch (error) {
       console.error('Failed to save prompt:', error);
-      showNotification('Failed to save prompt. Please try again.', 'error');
     }
   };
 
@@ -1437,7 +1467,6 @@ const SlothPromptBoost = () => {
     setGeneratedPrompt(prompt.generated_prompt);
     setSavedPromptId(prompt.parent_id || prompt.id);
     setCurrentView('results');
-    showNotification('Prompt loaded successfully!', 'success');
   };
 
 
@@ -1482,14 +1511,12 @@ const SlothPromptBoost = () => {
         setCurrentIterationAnswers({}); // Reset for next iteration
         setGeneratedPrompt(data.improved_prompt); // Set the improved prompt as generated
         setWizardMessage("Your prompt has been improved! ✨");
-        showNotification('Prompt improved successfully!', 'success');
         setCurrentView('results'); // Go directly to results page
       } else {
         throw new Error('No improved prompt received');
       }
     } catch (error) {
       console.error('Failed to improve prompt:', error);
-      showNotification('Failed to improve prompt. Please try again.', 'error');
       setWizardMessage("Something went wrong with the improvement. Try again? 🔮");
     } finally {
       setIsImproving(false);
@@ -1519,13 +1546,11 @@ const SlothPromptBoost = () => {
         setCurrentIterationAnswers({});
         setCurrentView('iterative'); // Switch back to iterative view
         setWizardMessage(`Iteration ${currentIteration + 1}: Answer new questions based on your improved prompt! 📝`);
-        showNotification(`New questions generated for iteration ${currentIteration + 1}`, 'info');
       } else {
         throw new Error('No analysis data received for improved prompt');
       }
     } catch (error) {
       console.error('Failed to analyze improved prompt:', error);
-      showNotification('Failed to generate new questions. Please try again.', 'error');
       setWizardMessage("Failed to generate new questions. Try again? 🧙‍♂️");
     } finally {
       setIsLoadingAnalysis(false);
@@ -1560,13 +1585,11 @@ const SlothPromptBoost = () => {
         setAnalysisResult(data);
         setCurrentView('iterative');
         setWizardMessage("Analysis complete! Answer the questions to improve your prompt. 📝");
-        showNotification('Analysis complete! Answer the questions below.', 'info');
       } else {
         throw new Error('No analysis data received');
       }
     } catch (error) {
       console.error('Failed to analyze prompt:', error);
-      showNotification('Failed to analyze prompt. Please try again.', 'error');
       setWizardMessage("Analysis failed. Let's try again? 🧙‍♂️");
     } finally {
       setIsGenerating(false);
@@ -1616,7 +1639,6 @@ const SlothPromptBoost = () => {
       }
     } catch (error) {
       console.error('Failed to generate preliminary prompt:', error);
-      showNotification('Failed to generate preliminary result. Please try again.', 'error');
     } finally {
       setIsGenerating(false);
     }
@@ -1657,7 +1679,6 @@ const SlothPromptBoost = () => {
         }
       } catch (error) {
         console.error('Failed to get next round questions:', error);
-        showNotification('Failed to continue. Please try again.', 'error');
       } finally {
         setIsGenerating(false);
       }
@@ -1687,13 +1708,6 @@ Laziness Score: ${preliminaryScore.laziness}/10 | Quality: ${preliminaryScore.qu
         />
       )}
 
-      {/* Notification Toast */}
-      <NotificationToast
-        message={notification.message}
-        type={notification.type}
-        isVisible={notification.isVisible}
-        onClose={hideNotification}
-      />
 
       {currentView === 'home' && (
         <HomeView 

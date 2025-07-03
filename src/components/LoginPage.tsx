@@ -37,7 +37,7 @@ export default function LoginPage() {
         <div className="bg-white rounded-2xl shadow-xl p-8">
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
-              WizardBoost
+              Prompt Wizard III
             </h1>
             <p className="text-gray-600">Where wisdom meets your creative prompts</p>
           </div>
