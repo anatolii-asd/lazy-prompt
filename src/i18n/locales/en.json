@@ -176,5 +176,17 @@
     "deletePromptFailed": "Failed to delete prompt",
     "networkError": "Network error. Please check your connection.",
     "genericError": "Something went wrong. Please try again."
+  },
+  "audio": {
+    "startRecording": "Start voice recording",
+    "stopRecording": "Stop recording",
+    "cancelRecording": "Cancel recording",
+    "processing": "Processing audio...",
+    "listening": "Listening...",
+    "unsupported": "Audio recording not supported in this browser",
+    "recordingError": "Recording error occurred",
+    "startError": "Could not start recording",
+    "permissionDenied": "Microphone permission denied",
+    "noMicrophone": "No microphone detected"
   }
 }

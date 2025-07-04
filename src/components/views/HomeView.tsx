@@ -2,6 +2,7 @@ import React from 'react';
 import { Sparkles } from 'lucide-react';
 import { HomeViewProps } from '../types';
 import { translate } from '../../lib/translations';
+import { AudioTextarea } from '../common/AudioTextarea';
 
 const HomeView: React.FC<HomeViewProps> = ({
   userPrompt,
@@ -34,12 +35,14 @@ const HomeView: React.FC<HomeViewProps> = ({
               {translate(language, 'prompt.enterPrompt')}
             </h2>
             
-            <textarea
+            <AudioTextarea
               ref={promptTextareaRef}
               value={userPrompt}
               onChange={(e) => setUserPrompt(e.target.value)}
+              onValueChange={setUserPrompt}
               placeholder={translate(language, 'prompt.placeholder')}
               className="w-full h-40 p-4 border-2 border-gray-200 rounded-2xl resize-none focus:border-wizard-primary focus:ring-4 focus:ring-wizard-forest-mist outline-none transition-all text-gray-700 placeholder-gray-400"
+              enableAudioRecording={true}
             />
             
             <div className="mt-4 text-sm text-gray-500 text-center">

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { SingleQuestionFormProps } from '../types';
 import { translate } from '../../lib/translations';
+import { AudioTextarea } from '../common/AudioTextarea';
 
 const SingleQuestionForm: React.FC<SingleQuestionFormProps> = ({
   question,
@@ -96,11 +97,13 @@ const SingleQuestionForm: React.FC<SingleQuestionFormProps> = ({
         <h3 className="text-lg font-semibold text-gray-800 mb-4">{question.question}</h3>
         
         {question.type === 'textarea' && (
-          <textarea
+          <AudioTextarea
             value={localAnswer}
             onChange={(e) => handleLocalChange(e.target.value)}
+            onValueChange={handleLocalChange}
             className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wizard-primary-500 focus:border-transparent resize-y min-h-[120px] text-gray-700"
             placeholder={translate(language, 'prompt.enterAnswer')}
+            enableAudioRecording={true}
           />
         )}
         
