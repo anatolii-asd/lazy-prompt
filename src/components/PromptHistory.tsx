@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { promptService, PromptWithVersions, Prompt } from '../lib/promptService'
 import { ArrowLeft, Search, Loader2, Clock, Layers, Play, Trash2, ChevronDown, ChevronRight } from 'lucide-react'
+import { translate } from '../lib/translations'
 
 interface PromptHistoryProps {
   onBack: () => void
@@ -9,7 +10,7 @@ interface PromptHistoryProps {
 }
 
 export default function PromptHistory({ onBack, onLoadPrompt }: PromptHistoryProps) {
-  const { user } = useAuth()
+  const { user, language } = useAuth()
   const [prompts, setPrompts] = useState<PromptWithVersions[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
@@ -116,14 +117,14 @@ export default function PromptHistory({ onBack, onLoadPrompt }: PromptHistoryPro
             className="flex items-center text-gray-600 hover:text-gray-800 mb-4 group"
           >
             <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform" />
-            Back to Prompt Generator
+            {translate(language, 'navigation.home')}
           </button>
 
           <div className="text-center">
             <h1 className="text-4xl font-bold text-wizard-enchanted-shadow mb-2">
-              🧙‍♂️ My Enchanted Prompts
+              🧙‍♂️ {translate(language, 'profile.myPrompts')}
             </h1>
-            <p className="text-gray-600">Your spellbook of magical prompt wisdom</p>
+            <p className="text-gray-600">{translate(language, 'prompts.description', 'Your spellbook of magical prompt wisdom')}</p>
           </div>
         </div>
 
@@ -136,7 +137,7 @@ export default function PromptHistory({ onBack, onLoadPrompt }: PromptHistoryPro
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search your prompts..."
+                placeholder={translate(language, 'prompts.searchPlaceholder')}
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wizard-primary focus:border-transparent outline-none"
               />
             </div>
@@ -145,7 +146,7 @@ export default function PromptHistory({ onBack, onLoadPrompt }: PromptHistoryPro
               disabled={loading}
               className="bg-emerald-magic text-white px-6 py-3 rounded-lg font-medium hover:bg-wizard-primary-dark transition disabled:opacity-50"
             >
-{loading ? <Loader2 className="w-5 h-5 animate-spin" /> : '🔍 Search'}
+{loading ? <Loader2 className="w-5 h-5 animate-spin" /> : translate(language, 'prompts.search')}
             </button>
           </form>
         </div>
@@ -161,7 +162,7 @@ export default function PromptHistory({ onBack, onLoadPrompt }: PromptHistoryPro
         {loading && (
           <div className="text-center py-12">
             <Loader2 className="w-12 h-12 text-wizard-primary animate-spin mx-auto mb-4" />
-            <p className="text-gray-600">Loading your lazy masterpieces...</p>
+            <p className="text-gray-600">{translate(language, 'prompts.loading')}</p>
           </div>
         )}
 
@@ -169,18 +170,18 @@ export default function PromptHistory({ onBack, onLoadPrompt }: PromptHistoryPro
         {!loading && prompts.length === 0 && !error && (
           <div className="text-center py-12">
             <div className="text-6xl mb-4">🌲🪶</div>
-            <h3 className="text-xl font-semibold text-gray-700 mb-2">No prompts yet!</h3>
+            <h3 className="text-xl font-semibold text-gray-700 mb-2">{translate(language, 'prompts.noPrompts')}!</h3>
             <p className="text-gray-600 mb-6">
               {searchQuery 
-                ? `No prompts found for "${searchQuery}"`
-                : "Start creating some amazing prompts and they'll appear here"
+                ? `${translate(language, 'prompts.noResults')} "${searchQuery}"`
+                : translate(language, 'prompts.createFirst')
               }
             </p>
             <button
               onClick={onBack}
               className="bg-emerald-magic text-white px-6 py-3 rounded-lg font-medium hover:bg-wizard-primary-dark transition"
             >
-              Create Your First Prompt
+              {translate(language, 'prompts.createFirstButton')}
             </button>
           </div>
         )}
@@ -203,7 +204,7 @@ export default function PromptHistory({ onBack, onLoadPrompt }: PromptHistoryPro
                             className="flex items-center text-sm text-gray-500 hover:text-wizard-primary transition-colors"
                           >
                             <Layers className="w-4 h-4 mr-1" />
-                            {prompt.total_versions} versions
+                            {prompt.total_versions} {translate(language, 'prompts.versions')}
                             {expandedPrompts.has(prompt.id) ? (
                               <ChevronDown className="w-4 h-4 ml-1" />
                             ) : (
@@ -224,7 +225,7 @@ export default function PromptHistory({ onBack, onLoadPrompt }: PromptHistoryPro
                   {/* Version History */}
                   {expandedPrompts.has(prompt.id) && promptVersions[prompt.id] && (
                     <div className="mb-4 border-t border-gray-200 pt-4">
-                      <h4 className="text-sm font-medium text-gray-700 mb-3">Version History:</h4>
+                      <h4 className="text-sm font-medium text-gray-700 mb-3">{translate(language, 'prompts.versionHistory')}</h4>
                       <div className="space-y-3">
                         {promptVersions[prompt.id].map((version) => (
                           <div key={version.id} className="bg-gray-50 rounded-lg p-3 border-l-4 border-wizard-primary-light">
@@ -243,15 +244,15 @@ export default function PromptHistory({ onBack, onLoadPrompt }: PromptHistoryPro
                                   } as PromptWithVersions)}
                                   className="text-xs bg-wizard-forest-mist text-wizard-primary-dark px-2 py-1 rounded hover:bg-wizard-secondary-light transition"
                                 >
-                                  Load v{version.version}
+                                  {translate(language, 'prompts.loadVersion')}{version.version}
                                 </button>
                               </div>
                             </div>
                             <p className="text-xs text-gray-600 mb-1">
-                              <span className="font-medium">Input:</span> {truncateText(version.original_input, 80)}
+                              <span className="font-medium">{translate(language, 'prompts.input')}</span> {truncateText(version.original_input, 80)}
                             </p>
                             <p className="text-xs text-gray-600">
-                              <span className="font-medium">Generated:</span> {truncateText(version.generated_prompt, 100)}
+                              <span className="font-medium">{translate(language, 'prompts.generated')}</span> {truncateText(version.generated_prompt, 100)}
                             </p>
                           </div>
                         ))}
@@ -277,7 +278,7 @@ export default function PromptHistory({ onBack, onLoadPrompt }: PromptHistoryPro
                         onClick={() => onLoadPrompt(prompt)}
                         className="flex items-center bg-emerald-magic text-white px-4 py-2 rounded-lg font-medium hover:bg-wizard-primary-dark transition group-hover:shadow-md"
                       >
-📖 Load Prompt
+📖 {translate(language, 'buttons.loadPrompt')}
                       </button>
                     </div>
                   </div>
@@ -291,7 +292,7 @@ export default function PromptHistory({ onBack, onLoadPrompt }: PromptHistoryPro
         {!loading && prompts.length > 0 && prompts.length >= 10 && (
           <div className="text-center mt-8">
             <button className="text-wizard-primary hover:text-wizard-primary-dark font-medium">
-              Load more prompts...
+              {translate(language, 'prompts.loadMorePrompts')}
             </button>
           </div>
         )}
@@ -304,22 +305,22 @@ export default function PromptHistory({ onBack, onLoadPrompt }: PromptHistoryPro
                 <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <span className="text-3xl">🍄</span>
                 </div>
-                <h3 className="text-xl font-bold text-gray-800 mb-2">Delete Prompt?</h3>
+                <h3 className="text-xl font-bold text-gray-800 mb-2">{translate(language, 'prompts.deleteTitle')}</h3>
                 <p className="text-gray-600 mb-6">
-                  Are you sure you want to delete this prompt and all its versions? This action cannot be undone.
+                  {translate(language, 'prompts.deleteMessage')}
                 </p>
                 <div className="flex gap-3">
                   <button
                     onClick={() => setShowDeleteConfirm(null)}
                     className="flex-1 bg-gray-100 text-gray-700 px-4 py-3 rounded-lg font-medium hover:bg-gray-200 transition"
                   >
-                    Cancel
+                    {translate(language, 'prompts.cancel')}
                   </button>
                   <button
                     onClick={() => handleDeletePrompt(showDeleteConfirm)}
                     className="flex-1 bg-gradient-to-r from-red-600 to-red-700 text-white px-4 py-3 rounded-lg font-medium hover:from-red-700 hover:to-red-800 transition"
                   >
-                    Delete
+                    {translate(language, 'prompts.delete')}
                   </button>
                 </div>
               </div>
