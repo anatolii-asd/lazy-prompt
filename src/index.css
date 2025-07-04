@@ -19,7 +19,7 @@
     box-shadow: 0 0 5px rgba(4, 120, 87, 0.3);
   }
   50% {
-    box-shadow: 0 0 20px rgba(4, 120, 87, 0.6), 0 0 30px rgba(4, 120, 87, 0.4);
+    box-shadow: 0 0 15px rgba(4, 120, 87, 0.5), 0 0 20px rgba(4, 120, 87, 0.3);
   }
 }
 
@@ -52,6 +52,8 @@
 
 .animate-magical-glow {
   animation: magical-glow 3s ease-in-out infinite;
+  will-change: box-shadow;
+  transform: translateZ(0);
 }
 
 .animate-sparkle {
@@ -62,23 +64,7 @@
   animation: forest-sway 4s ease-in-out infinite;
 }
 
-/* Forest wizard background effects */
-.forest-sparkles::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image: 
-    radial-gradient(2px 2px at 20px 30px, rgba(245, 158, 11, 0.4), transparent),
-    radial-gradient(2px 2px at 40px 70px, rgba(4, 120, 87, 0.3), transparent),
-    radial-gradient(1px 1px at 90px 40px, rgba(245, 158, 11, 0.5), transparent),
-    radial-gradient(1px 1px at 130px 80px, rgba(4, 120, 87, 0.4), transparent),
-    radial-gradient(2px 2px at 160px 30px, rgba(245, 158, 11, 0.3), transparent);
-  background-repeat: repeat;
-  background-size: 200px 100px;
-  animation: sparkle 8s linear infinite;
-  pointer-events: none;
-  z-index: 1;
+/* Forest wizard background effects - disabled to prevent scroll issues */
+.forest-sparkles {
+  /* Sparkles effect temporarily disabled */
 }
