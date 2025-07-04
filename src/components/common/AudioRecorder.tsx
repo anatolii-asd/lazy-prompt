@@ -160,7 +160,7 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute bottom-0 left-0 right-0 bg-wizard-forest-mist border-2 border-wizard-primary rounded-2xl p-4 flex items-center justify-between"
+            className="absolute bottom-0 left-0 right-0 h-14 bg-wizard-forest-mist border-2 border-wizard-primary rounded-2xl px-4 flex items-center justify-between"
           >
             <div className="flex items-center space-x-3">
               <div className="flex items-center space-x-2">
