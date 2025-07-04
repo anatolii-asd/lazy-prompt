@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Mic, MicOff, Square, X } from 'lucide-react';
+import { Mic, MicOff, Check, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
 import { translate } from '../../lib/translations';
@@ -50,16 +50,6 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const { language } = useAuth();
 
-  // Check browser compatibility on mount
-  useEffect(() => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (SpeechRecognition) {
-      setIsAudioSupported(true);
-      recognitionRef.current = new SpeechRecognition();
-      setupRecognition();
-    }
-  }, [setupRecognition]);
-
   const setupRecognition = useCallback(() => {
     if (!recognitionRef.current) return;
 
@@ -104,6 +94,16 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
       setIsProcessing(false);
     };
   }, [language, currentText, onTranscriptionComplete]);
+
+  // Check browser compatibility on mount
+  useEffect(() => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      setIsAudioSupported(true);
+      recognitionRef.current = new SpeechRecognition();
+      setupRecognition();
+    }
+  }, [setupRecognition]);
 
   const startRecording = () => {
     if (!recognitionRef.current || isDisabled) return;
@@ -202,14 +202,14 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
               </div>
             </div>
 
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-4">
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={stopRecording}
                 className="px-3 py-1 rounded-lg bg-wizard-primary text-white text-sm font-medium hover:bg-wizard-primary/90 transition-colors"
               >
-                <Square className="w-4 h-4" />
+                <Check className="w-4 h-4" />
               </motion.button>
               <motion.button
                 whileHover={{ scale: 1.05 }}
