@@ -2,6 +2,7 @@ import React from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { IterativeFlowViewProps } from '../types';
 import DynamicQuestionForm from '../forms/DynamicQuestionForm';
+import { translate } from '../../lib/translations';
 
 const IterativeFlowView: React.FC<IterativeFlowViewProps> = ({
   userPrompt,
@@ -17,7 +18,8 @@ const IterativeFlowView: React.FC<IterativeFlowViewProps> = ({
   setCurrentView,
   setGeneratedPrompt,
   showingQuestions,
-  currentIterationAnswers
+  currentIterationAnswers,
+  language
 }) => {
   if (isLoadingAnalysis) {
     return (
@@ -67,28 +69,28 @@ const IterativeFlowView: React.FC<IterativeFlowViewProps> = ({
               className="flex items-center space-x-2 text-gray-600 hover:text-wizard-enchanted-shadow"
             >
               <ArrowLeft className="w-4 h-4" />
-              <span>Back to Home</span>
+              <span>{translate(language, 'navigation.backToHome')}</span>
             </button>
             <div className="text-sm text-gray-500">
-              Iteration {currentIteration} of {maxIterations}
+              {translate(language, 'prompt.iteration')} {currentIteration} {translate(language, 'prompt.of')} {maxIterations}
             </div>
           </div>
           
           <h1 className="text-2xl font-bold text-wizard-enchanted-shadow mb-2">
-            🧙‍♂️ The Wizard's Enhancement Chamber
+            🧙‍♂️ {translate(language, 'wizard.enhancementChamber')}
           </h1>
           <p className="text-gray-600 italic mb-3">
-            "Answer my mystical inquiries, and I shall weave your words into legendary prompts!"
+            "{translate(language, 'wizard.mysticalInquiry')}"
           </p>
           
           {/* Simple Stats Labels */}
           {analysisResult && (
             <div className="flex gap-4 text-sm">
               <div className="text-gray-700">
-                <span className="font-semibold">Prompt Score:</span> <span className="text-wizard-primary font-bold">{analysisResult.score}/100</span>
+                <span className="font-semibold">{translate(language, 'prompt.promptScore')}:</span> <span className="text-wizard-primary font-bold">{analysisResult.score}/100</span>
               </div>
               <div className="text-gray-700">
-                <span className="font-semibold">Prompt Rank:</span> <span className="text-wizard-accent font-bold">{analysisResult.score_label}</span>
+                <span className="font-semibold">{translate(language, 'prompt.promptRank')}:</span> <span className="text-wizard-accent font-bold">{analysisResult.score_label}</span>
               </div>
             </div>
           )}
@@ -99,8 +101,8 @@ const IterativeFlowView: React.FC<IterativeFlowViewProps> = ({
           <div className="bg-white rounded-2xl shadow-lg p-6">
             <h2 className="text-lg font-semibold text-wizard-enchanted-shadow mb-4">
               {currentIteration === 0 
-                ? "Answer these questions to improve your prompt" 
-                : `Iteration ${currentIteration + 1}: Answer questions for further improvement`
+                ? translate(language, 'prompt.answerQuestions')
+                : `${translate(language, 'prompt.iteration')} ${currentIteration + 1}: ${translate(language, 'prompt.answerQuestionsIteration')}`
               }
             </h2>
             <DynamicQuestionForm
@@ -109,6 +111,7 @@ const IterativeFlowView: React.FC<IterativeFlowViewProps> = ({
               onAnswerChange={onAnswerChange}
               onSubmit={onImprovePrompt}
               isSubmitting={isImproving}
+              language={language}
             />
           </div>
         )}
@@ -116,11 +119,11 @@ const IterativeFlowView: React.FC<IterativeFlowViewProps> = ({
         {/* Improvement Controls */}
         {currentIteration > 0 && !showingQuestions && (
           <div className="bg-white rounded-2xl shadow-lg p-6">
-            <h2 className="text-lg font-semibold text-wizard-enchanted-shadow mb-4">Continue Improving</h2>
+            <h2 className="text-lg font-semibold text-wizard-enchanted-shadow mb-4">{translate(language, 'prompt.continueImproving')}</h2>
             {canContinue ? (
               <div className="space-y-4">
                 <p className="text-gray-600">
-                  Your prompt has been improved! You can continue refining it with additional iterations.
+                  {translate(language, 'prompt.promptImprovedContinue')}
                 </p>
                 <div className="flex space-x-4">
                   <button
@@ -128,7 +131,7 @@ const IterativeFlowView: React.FC<IterativeFlowViewProps> = ({
                     disabled={isImproving}
                     className="bg-emerald-magic text-white py-2 px-6 rounded-lg font-medium hover:from-wizard-primary-700 hover:to-wizard-accent-700 disabled:opacity-50"
                   >
-                    {isImproving ? 'Improving...' : 'Improve More'}
+                    {isImproving ? translate(language, 'prompt.improving') : translate(language, 'prompt.improveMore')}
                   </button>
                   <button
                     onClick={() => {
@@ -137,14 +140,14 @@ const IterativeFlowView: React.FC<IterativeFlowViewProps> = ({
                     }}
                     className="bg-gray-600 text-white py-2 px-6 rounded-lg font-medium hover:bg-gray-700"
                   >
-                    Finish & Save
+                    {translate(language, 'prompt.finishSave')}
                   </button>
                 </div>
               </div>
             ) : (
               <div className="text-center py-4">
                 <p className="text-gray-600 mb-4">
-                  You've reached the maximum number of iterations ({maxIterations}). Further improvement is not possible.
+                  {translate(language, 'prompt.maxIterationsReached').replace('{max}', maxIterations.toString())}
                 </p>
                 <button
                   onClick={() => {
@@ -153,7 +156,7 @@ const IterativeFlowView: React.FC<IterativeFlowViewProps> = ({
                   }}
                   className="bg-emerald-magic text-white py-2 px-6 rounded-lg font-medium hover:from-wizard-primary-700 hover:to-wizard-accent-700"
                 >
-                  Finish & Save
+                  {translate(language, 'prompt.finishSave')}
                 </button>
               </div>
             )}

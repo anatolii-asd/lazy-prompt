@@ -4,13 +4,15 @@ import { ArrowLeft } from 'lucide-react';
 import { DynamicQuestionFormProps } from '../types';
 import { QuestionItem } from '../../lib/promptService';
 import SingleQuestionForm from './SingleQuestionForm';
+import { translate } from '../../lib/translations';
 
 const DynamicQuestionForm: React.FC<DynamicQuestionFormProps> = ({
   questions,
   answers,
   onAnswerChange,
   onSubmit,
-  isSubmitting
+  isSubmitting,
+  language
 }) => {
   const allQuestions = [
     ...questions.goals || [],
@@ -64,12 +66,12 @@ const DynamicQuestionForm: React.FC<DynamicQuestionFormProps> = ({
   if (!currentQuestion) {
     return (
       <div className="text-center py-8">
-        <p className="text-gray-600 mb-4">No questions available</p>
+        <p className="text-gray-600 mb-4">{translate(language, 'prompt.noQuestions')}</p>
         <button
           onClick={onSubmit}
           className="bg-emerald-magic text-white py-2 px-6 rounded-lg"
         >
-          Continue
+          {translate(language, 'prompt.continue')}
         </button>
       </div>
     );
@@ -87,11 +89,11 @@ const DynamicQuestionForm: React.FC<DynamicQuestionFormProps> = ({
           className="flex items-center space-x-2 text-gray-600 hover:text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>Previous</span>
+          <span>{translate(language, 'prompt.previous')}</span>
         </button>
         
         <div className="text-sm text-gray-500">
-          {answeredQuestions.size} of {allQuestions.length} questions answered
+          {answeredQuestions.size} {translate(language, 'prompt.of')} {allQuestions.length} {translate(language, 'prompt.questionsAnswered')}
         </div>
       </div>
 
@@ -108,13 +110,14 @@ const DynamicQuestionForm: React.FC<DynamicQuestionFormProps> = ({
           onConfirm={handleConfirm}
           onSkip={handleSkip}
           isSubmitting={isSubmitting && isLastQuestion}
+          language={language}
         />
       </AnimatePresence>
 
       {/* Summary of answers */}
       {answeredQuestions.size > 0 && (
         <div className="bg-gray-50 rounded-lg p-4">
-          <h4 className="font-medium text-gray-800 mb-2">Answered Questions:</h4>
+          <h4 className="font-medium text-gray-800 mb-2">{translate(language, 'prompt.answeredQuestions')}:</h4>
           <div className="text-sm text-gray-600">
             {Array.from(answeredQuestions).map(index => {
               const q = allQuestions[index];

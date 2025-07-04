@@ -39,10 +39,6 @@ export default function LoginPage() {
     <div className="min-h-screen bg-forest-gradient flex items-center justify-center p-4 relative forest-sparkles">
       <div className="w-full max-w-md">
         <div className="bg-white rounded-2xl shadow-xl p-8 animate-magical-glow border-2 border-wizard-forest-mist relative z-10">
-          <div className="mb-6">
-            <LanguageSelector className="w-48 mx-auto" showLabel={false} />
-          </div>
-          
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold bg-emerald-magic bg-clip-text text-transparent mb-2">
               {translate(language, 'wizard.title')}
@@ -82,7 +78,7 @@ export default function LoginPage() {
                 {loading ? (
                   <>
                     <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                    🧙‍♂️ Casting magic link...
+                    {translate(language, 'auth.castingMagicLink')}
                   </>
                 ) : (
                   translate(language, 'auth.signInWithMagicLink')
@@ -109,7 +105,7 @@ export default function LoginPage() {
                 {translate(language, 'auth.welcomeBack')} <span className="font-medium">{email}</span>
               </p>
               <p className="text-sm text-gray-500">
-                Click the link in the email to log in. The link will expire in 1 hour.
+                {translate(language, 'auth.emailInstructions')}
               </p>
               <button
                 onClick={() => {
@@ -118,7 +114,7 @@ export default function LoginPage() {
                 }}
                 className="text-wizard-primary hover:text-wizard-primary-dark font-medium"
               >
-                Try a different email
+                {translate(language, 'auth.tryDifferentEmail')}
               </button>
             </div>
           )}
@@ -126,8 +122,11 @@ export default function LoginPage() {
 
         <div className="text-center mt-6 text-sm text-gray-600">
           <p>
-            By signing in, you agree to use this tool for magical prompt generation only. 🧙‍♂️🌲
+            {translate(language, 'auth.termsText')}
           </p>
+          <div className="mt-4">
+            <LanguageSelector className="w-36 mx-auto" showLabel={false} />
+          </div>
         </div>
       </div>
     </div>

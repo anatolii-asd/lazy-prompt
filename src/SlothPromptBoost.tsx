@@ -245,7 +245,7 @@ const SlothPromptBoost = () => {
         setIterativeAnswers(prev => [...prev, answersToUse]);
         setCurrentIterationAnswers({}); // Reset for next iteration
         setGeneratedPrompt(data.improved_prompt); // Set the improved prompt as generated
-        setWizardMessage("Your prompt has been improved! ✨");
+        setWizardMessage(translate(language, 'prompt.promptImproved'));
         
         // Auto-save the improved prompt to database
         if (user) {
@@ -330,7 +330,7 @@ const SlothPromptBoost = () => {
         setShowingQuestions(true);
         setCurrentIterationAnswers({});
         setCurrentView('iterative'); // Switch back to iterative view
-        setWizardMessage(`Iteration ${currentIteration + 1}: Answer new questions based on your improved prompt! 📝`);
+        setWizardMessage(`${translate(language, 'prompt.iteration')} ${currentIteration + 1}: ${translate(language, 'prompt.answerNewQuestions')}`);
         setIsImproving(false);
       } else {
         throw new Error('No analysis data received for improved prompt');
@@ -540,6 +540,7 @@ Laziness Score: ${preliminaryScore.laziness}/10 | Quality: ${preliminaryScore.qu
           setIterativeAnswers={setIterativeAnswers}
           setCurrentIterationAnswers={setCurrentIterationAnswers}
           setShowingQuestions={setShowingQuestions}
+          language={language}
         />
       )}
       {currentView === 'three-round' && (
@@ -586,6 +587,7 @@ Laziness Score: ${preliminaryScore.laziness}/10 | Quality: ${preliminaryScore.qu
           setGeneratedPrompt={setGeneratedPrompt}
           showingQuestions={showingQuestions}
           currentIterationAnswers={currentIterationAnswers}
+          language={language}
         />
       )}
       {currentView === 'history' && (
