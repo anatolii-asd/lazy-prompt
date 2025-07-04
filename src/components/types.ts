@@ -7,6 +7,7 @@ export interface HomeViewProps {
   isGenerating: boolean;
   promptTextareaRef: React.RefObject<HTMLTextAreaElement>;
   randomQuote: string;
+  language: string;
 }
 
 export interface ResultsViewProps {

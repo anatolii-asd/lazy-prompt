@@ -1,6 +1,7 @@
 import React from 'react';
 import { Sparkles } from 'lucide-react';
 import { HomeViewProps } from '../types';
+import { translate } from '../../lib/translations';
 
 const HomeView: React.FC<HomeViewProps> = ({
   userPrompt,
@@ -8,7 +9,8 @@ const HomeView: React.FC<HomeViewProps> = ({
   handleGenerate,
   isGenerating,
   promptTextareaRef,
-  randomQuote
+  randomQuote,
+  language
 }) => {
   return (
     <div className="min-h-screen bg-forest-gradient p-4 pt-20 relative forest-sparkles">
@@ -16,9 +18,9 @@ const HomeView: React.FC<HomeViewProps> = ({
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="hidden sm:block text-4xl font-bold text-wizard-enchanted-shadow mb-2">
-            🧙‍♂️ Prompt Wizard III
+            🧙‍♂️ {translate(language, 'wizard.title')}
           </h1>
-          <p className="hidden sm:block text-xl text-gray-600 mb-4">Where wisdom meets your creative prompts</p>
+          <p className="hidden sm:block text-xl text-gray-600 mb-4">{translate(language, 'wizard.subtitle')}</p>
           <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-4 max-w-md mx-auto border border-gray-200">
             <p className="text-gray-700 italic">"{randomQuote}"</p>
           </div>
@@ -29,19 +31,19 @@ const HomeView: React.FC<HomeViewProps> = ({
           <div className="bg-white rounded-3xl shadow-xl p-8 border-2 border-wizard-forest-mist animate-magical-glow relative z-10">
             <h2 className="text-2xl font-bold text-wizard-enchanted-shadow mb-6 flex items-center justify-center">
               <Sparkles className="w-7 h-7 mr-3 text-yellow-500" />
-              What's your prompt idea?
+              {translate(language, 'prompt.enterPrompt')}
             </h2>
             
             <textarea
               ref={promptTextareaRef}
               value={userPrompt}
               onChange={(e) => setUserPrompt(e.target.value)}
-              placeholder="Type something like: 'help me write an email' or 'create a workout plan' or literally anything..."
+              placeholder={translate(language, 'prompt.placeholder')}
               className="w-full h-40 p-4 border-2 border-gray-200 rounded-2xl resize-none focus:border-wizard-primary focus:ring-4 focus:ring-wizard-forest-mist outline-none transition-all text-gray-700 placeholder-gray-400"
             />
             
             <div className="mt-4 text-sm text-gray-500 text-center">
-              💡 Pro tip: We'll ask you smart questions to make your prompt perfect!
+              💡 {translate(language, 'home.howItWorks')}
             </div>
           </div>
         </div>
@@ -56,12 +58,12 @@ const HomeView: React.FC<HomeViewProps> = ({
             {isGenerating ? (
               <div className="flex items-center">
                 <div className="animate-spin mr-3">🧙‍♂️</div>
-                Getting ready...
+                {translate(language, 'prompt.analyzing')}
               </div>
             ) : (
               <div className="flex items-center">
                 <div className="mr-2 sm:mr-3 text-xl sm:text-2xl">🧙‍♂️</div>
-                Start Creating My Prompt! ✨
+                {translate(language, 'prompt.analyze')} ✨
               </div>
             )}
           </button>

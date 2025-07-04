@@ -37,22 +37,22 @@
     ],
     "title": "Prompt Wizard III",
     "subtitle": "Master the Art of AI Communication",
-    "description": "Transform your ideas into powerful prompts with magical precision"
+    "description": "🧙‍♂️ Where magic meets your creative prompts 🌲"
   },
   "home": {
     "title": "Welcome to Prompt Wizard III",
     "subtitle": "Your AI-Powered Prompt Enhancement Assistant",
     "description": "Transform your simple ideas into powerful, effective prompts that get better results from AI assistants.",
     "getStarted": "Get Started",
-    "howItWorks": "How It Works",
+    "howItWorks": "Pro tip: We'll ask you smart questions to make your prompt perfect!",
     "features": "Features"
   },
   "prompt": {
-    "enterPrompt": "Enter your prompt",
-    "placeholder": "Type your prompt here...",
-    "analyze": "Analyze Prompt",
+    "enterPrompt": "What's your prompt idea?",
+    "placeholder": "Type something like: 'help me write an email' or 'create a workout plan' or literally anything...",
+    "analyze": "Start Creating My Prompt!",
     "improve": "Improve Prompt",
-    "analyzing": "Analyzing...",
+    "analyzing": "Getting ready...",
     "improving": "Improving...",
     "score": "Score",
     "suggestions": "Suggestions",

@@ -8,7 +8,7 @@ const translations = {
 };
 
 // Helper function to get nested translation value
-function getNestedValue(obj: any, path: string): string | undefined {
+function getNestedValue(obj: any, path: string): any {
   return path.split('.').reduce((current, key) => {
     if (current && typeof current === 'object' && key in current) {
       return current[key];
@@ -17,7 +17,7 @@ function getNestedValue(obj: any, path: string): string | undefined {
   }, obj);
 }
 
-export function translate(language: Language, key: string, defaultValue?: string): string {
+export function translate(language: Language, key: string, defaultValue?: string): any {
   const translation = getNestedValue(translations[language], key);
   if (translation !== undefined) {
     return translation;

@@ -3,6 +3,7 @@ import { useAuth } from './contexts/AuthContext';
 import { promptService, PromptWithVersions, EnhancePromptRequest, RoundQuestion, AnalyzePromptResponse } from './lib/promptService';
 import ProfileDropdown from './components/ProfileDropdown';
 import PromptHistory from './components/PromptHistory';
+import { translate } from './lib/translations';
 
 // Imported View Components
 import HomeView from './components/views/HomeView';
@@ -11,22 +12,29 @@ import ThreeRoundView from './components/views/ThreeRoundView';
 import PreliminaryResultView from './components/views/PreliminaryResultView';
 import IterativeFlowView from './components/views/IterativeFlowView';
 
-const wizardQuotes = [
-  "Why struggle when magic can guide your way? 🧙‍♂️",
-  "Every great prompt begins with a wise question! ✨",
-  "Let my wisdom transform your thoughts into power! 🔮",
-  "I shall conjure the perfect words for you! 📜",
-  "Ancient knowledge meets modern brilliance! 🌟"
-];
+const getWizardQuotes = (language: string) => {
+  const quotes = translate(language, 'wizard.quotes');
+  if (Array.isArray(quotes)) {
+    return quotes;
+  }
+  // Fallback quotes
+  return [
+    "Why struggle when magic can guide your way? 🧙‍♂️",
+    "Every great prompt begins with a wise question! ✨",
+    "Let my wisdom transform your thoughts into power! 🔮",
+    "I shall conjure the perfect words for you! 📜",
+    "Ancient knowledge meets modern brilliance! 🌟"
+  ];
+};
 
 // Header component for the app
-const Header = ({ promptCount, onShowHistory }: { promptCount: number; onShowHistory: () => void }) => (
+const Header = ({ promptCount, onShowHistory, language }: { promptCount: number; onShowHistory: () => void; language: string }) => (
   <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200 px-4 py-3 sticky top-0 z-40">
     <div className="max-w-4xl mx-auto flex justify-between items-center">
       <div className="flex items-center space-x-2">
         <span className="text-2xl">🧙‍♂️</span>
         <h1 className="text-xl font-bold bg-emerald-magic bg-clip-text text-transparent">
-          Prompt Wizard III
+          {translate(language, 'wizard.title')}
         </h1>
       </div>
       <ProfileDropdown promptCount={promptCount} onShowHistory={onShowHistory} />
@@ -40,7 +48,7 @@ const SlothPromptBoost = () => {
   const [userPrompt, setUserPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedPrompt, setGeneratedPrompt] = useState('');
-  const [wizardMessage, setWizardMessage] = useState("Let us weave magic into your words! 🧙‍♂️🌲");
+  const [wizardMessage, setWizardMessage] = useState("");
   const [promptCount, setPromptCount] = useState(0);
   const [savedPromptId, setSavedPromptId] = useState<string | null>(null);
   const [versionHistory, setVersionHistory] = useState<any[]>([]);
@@ -76,6 +84,13 @@ const SlothPromptBoost = () => {
       loadPromptCount();
     }
   }, [user]);
+
+  // Update wizard message when language changes
+  useEffect(() => {
+    const quotes = getWizardQuotes(language);
+    const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+    setWizardMessage(randomQuote);
+  }, [language]);
 
   // Auto-focus the textarea when the component mounts
   useEffect(() => {
@@ -471,7 +486,8 @@ Laziness Score: ${preliminaryScore.laziness}/10 | Quality: ${preliminaryScore.qu
       {currentView !== 'history' && (
         <Header 
           promptCount={promptCount} 
-          onShowHistory={() => setCurrentView('history')} 
+          onShowHistory={() => setCurrentView('history')}
+          language={language}
         />
       )}
 
@@ -483,6 +499,7 @@ Laziness Score: ${preliminaryScore.laziness}/10 | Quality: ${preliminaryScore.qu
           isGenerating={isGenerating}
           promptTextareaRef={promptTextareaRef}
           randomQuote={randomQuote}
+          language={language}
         />
       )}
       {currentView === 'results' && (
