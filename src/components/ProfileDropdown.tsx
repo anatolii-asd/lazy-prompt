@@ -55,7 +55,7 @@ export default function ProfileDropdown({ promptCount, onShowHistory }: ProfileD
             className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center justify-between group"
           >
             <div className="flex items-center space-x-3">
-              <History className="w-4 h-4 text-gray-500 group-hover:text-purple-600" />
+              <History className="w-4 h-4 text-gray-500 group-hover:text-wizard-primary" />
               <span className="text-gray-700 group-hover:text-gray-900">My Prompts</span>
             </div>
             <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
