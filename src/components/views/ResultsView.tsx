@@ -160,7 +160,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
                   }}
                   className={`flex items-center justify-center space-x-2 px-4 py-3 rounded-xl font-medium shadow-md transition-all duration-300 ${
                     showCopySuccess 
-                      ? 'bg-wizard-primary-dark text-white transform scale-105' 
+                      ? 'bg-wizard-primary-dark text-white' 
                       : 'bg-wizard-primary text-white hover:bg-wizard-primary-dark'
                   }`}
                 >
@@ -183,7 +183,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
                   disabled={!user || !generatedPrompt || isSaving}
                   className={`flex items-center justify-center space-x-2 px-4 py-3 rounded-xl font-medium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed ${
                     showSaveSuccess 
-                      ? 'bg-wizard-primary text-white transform scale-105 shadow-lg' 
+                      ? 'bg-wizard-primary text-white shadow-lg' 
                       : 'bg-white text-wizard-primary hover:bg-wizard-forest-mist border-2 border-wizard-primary'
                   }`}
                 >
@@ -199,7 +199,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
             <button 
               onClick={handleContinueImprovement}
               disabled={isImproving || currentIteration >= 5}
-              className="w-full bg-emerald-magic text-white text-base sm:text-xl font-bold py-3 sm:py-4 px-6 sm:px-12 rounded-2xl hover:bg-wizard-primary-dark transform hover:scale-105 transition-all shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              className="w-full bg-emerald-magic text-white text-base sm:text-xl font-bold py-3 sm:py-4 px-6 sm:px-12 rounded-2xl hover:bg-wizard-primary-dark transition-all shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {currentIteration >= 5 ? (
                 'Maximum Iterations Reached'
