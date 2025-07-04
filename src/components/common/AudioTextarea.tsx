@@ -1,4 +1,4 @@
-import React, { forwardRef, useState } from 'react';
+import React, { forwardRef } from 'react';
 import { AudioRecorder } from './AudioRecorder';
 
 interface AudioTextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
@@ -20,8 +20,6 @@ export const AudioTextarea = forwardRef<HTMLTextAreaElement, AudioTextareaProps>
     disabled,
     ...props 
   }, ref) => {
-    const [isRecording, setIsRecording] = useState(false);
-
     const handleTranscriptionComplete = (newText: string) => {
       if (onValueChange) {
         onValueChange(newText);
@@ -42,8 +40,7 @@ export const AudioTextarea = forwardRef<HTMLTextAreaElement, AudioTextareaProps>
           value={value}
           onChange={onChange}
           disabled={disabled}
-          className={`${className} ${isRecording ? 'pb-16' : ''}`}
-          style={{ transition: 'padding-bottom 0.2s ease' }}
+          className={`${className} pb-16`}
           {...props}
         />
         {enableAudioRecording && (

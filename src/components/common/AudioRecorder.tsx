@@ -9,7 +9,6 @@ interface AudioRecorderProps {
   currentText: string;
   className?: string;
   isDisabled?: boolean;
-  onRecordingStateChange?: (isRecording: boolean) => void;
 }
 
 interface SpeechRecognitionEvent extends Event {
@@ -43,7 +42,6 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
   currentText,
   className = '',
   isDisabled = false,
-  onRecordingStateChange,
 }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -135,13 +133,6 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
       recognitionRef.current.lang = language === 'en' ? 'en-US' : 'uk-UA';
     }
   }, [language]);
-
-  // Notify parent component when recording state changes
-  useEffect(() => {
-    if (onRecordingStateChange) {
-      onRecordingStateChange(isRecording || isProcessing);
-    }
-  }, [isRecording, isProcessing, onRecordingStateChange]);
 
   if (!isAudioSupported) {
     return null; // Hide component if not supported
