@@ -106,10 +106,11 @@ const SlothPromptBoost = () => {
     }
   }, [currentView, user, generatedPrompt, savedPromptId]);
 
-  // Memoize the random quote to prevent re-renders
+  // Memoize the random quote to prevent re-renders, but update when language changes
   const randomQuote = useMemo(() => {
-    return wizardQuotes[Math.floor(Math.random() * wizardQuotes.length)];
-  }, []); // Empty dependency array means it's calculated once
+    const quotes = getWizardQuotes(language);
+    return quotes[Math.floor(Math.random() * quotes.length)];
+  }, [language]); // Recalculate when language changes
 
   const loadPromptCount = async () => {
     if (!user) return;
