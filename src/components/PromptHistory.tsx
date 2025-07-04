@@ -106,17 +106,6 @@ export default function PromptHistory({ onBack, onLoadPrompt }: PromptHistoryPro
     return text.substring(0, maxLength) + '...'
   }
 
-  const getLazinessLabel = (level: string | null) => {
-    switch (level) {
-      case 'super_duper':
-        return { label: 'Super Lazy', icon: '😴', color: 'bg-purple-100 text-purple-800' }
-      case 'regular':
-        return { label: 'Regular Lazy', icon: '🛋️', color: 'bg-blue-100 text-blue-800' }
-      default:
-        return { label: 'Unknown', icon: '❓', color: 'bg-gray-100 text-gray-800' }
-    }
-  }
-
   return (
     <div className="min-h-screen bg-forest-gradient p-4">
       <div className="max-w-4xl mx-auto">
@@ -200,8 +189,6 @@ export default function PromptHistory({ onBack, onLoadPrompt }: PromptHistoryPro
         {!loading && prompts.length > 0 && (
           <div className="grid gap-4 md:gap-6">
             {prompts.map((prompt) => {
-              const laziness = getLazinessLabel(prompt.laziness_level)
-              
               return (
                 <div
                   key={prompt.id}
@@ -210,9 +197,6 @@ export default function PromptHistory({ onBack, onLoadPrompt }: PromptHistoryPro
                   <div className="flex justify-between items-start mb-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
-                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${laziness.color}`}>
-                          {laziness.icon} {laziness.label}
-                        </span>
                         {prompt.total_versions > 1 && (
                           <button
                             onClick={() => toggleVersions(prompt.id)}
