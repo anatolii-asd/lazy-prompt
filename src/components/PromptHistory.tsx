@@ -118,7 +118,7 @@ export default function PromptHistory({ onBack, onLoadPrompt }: PromptHistoryPro
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-100 via-blue-50 to-purple-100 p-4">
+    <div className="min-h-screen bg-forest-gradient p-4">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-8">
@@ -131,7 +131,7 @@ export default function PromptHistory({ onBack, onLoadPrompt }: PromptHistoryPro
           </button>
 
           <div className="text-center">
-            <h1 className="text-4xl font-bold text-gray-800 mb-2">
+            <h1 className="text-4xl font-bold text-wizard-enchanted-shadow mb-2">
               🧙‍♂️ My Enchanted Prompts
             </h1>
             <p className="text-gray-600">Your spellbook of magical prompt wisdom</p>
@@ -148,15 +148,15 @@ export default function PromptHistory({ onBack, onLoadPrompt }: PromptHistoryPro
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search your prompts..."
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wizard-primary focus:border-transparent outline-none"
               />
             </div>
             <button
               type="submit"
               disabled={loading}
-              className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-lg font-medium hover:from-purple-700 hover:to-pink-700 transition disabled:opacity-50"
+              className="bg-emerald-magic text-white px-6 py-3 rounded-lg font-medium hover:bg-wizard-primary-dark transition disabled:opacity-50"
             >
-{loading ? <Loader2 className="w-5 h-5 animate-spin" /> : '🦉 Search'}
+{loading ? <Loader2 className="w-5 h-5 animate-spin" /> : '🔍 Search'}
             </button>
           </form>
         </div>
@@ -171,7 +171,7 @@ export default function PromptHistory({ onBack, onLoadPrompt }: PromptHistoryPro
         {/* Loading State */}
         {loading && (
           <div className="text-center py-12">
-            <Loader2 className="w-12 h-12 text-purple-600 animate-spin mx-auto mb-4" />
+            <Loader2 className="w-12 h-12 text-wizard-primary animate-spin mx-auto mb-4" />
             <p className="text-gray-600">Loading your lazy masterpieces...</p>
           </div>
         )}
@@ -179,7 +179,7 @@ export default function PromptHistory({ onBack, onLoadPrompt }: PromptHistoryPro
         {/* Empty State */}
         {!loading && prompts.length === 0 && !error && (
           <div className="text-center py-12">
-            <div className="text-6xl mb-4">🦥💤</div>
+            <div className="text-6xl mb-4">🌲🪶</div>
             <h3 className="text-xl font-semibold text-gray-700 mb-2">No prompts yet!</h3>
             <p className="text-gray-600 mb-6">
               {searchQuery 
@@ -189,7 +189,7 @@ export default function PromptHistory({ onBack, onLoadPrompt }: PromptHistoryPro
             </p>
             <button
               onClick={onBack}
-              className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-lg font-medium hover:from-purple-700 hover:to-pink-700 transition"
+              className="bg-emerald-magic text-white px-6 py-3 rounded-lg font-medium hover:bg-wizard-primary-dark transition"
             >
               Create Your First Prompt
             </button>
@@ -216,7 +216,7 @@ export default function PromptHistory({ onBack, onLoadPrompt }: PromptHistoryPro
                         {prompt.total_versions > 1 && (
                           <button
                             onClick={() => toggleVersions(prompt.id)}
-                            className="flex items-center text-sm text-gray-500 hover:text-purple-600 transition-colors"
+                            className="flex items-center text-sm text-gray-500 hover:text-wizard-primary transition-colors"
                           >
                             <Layers className="w-4 h-4 mr-1" />
                             {prompt.total_versions} versions
@@ -243,9 +243,9 @@ export default function PromptHistory({ onBack, onLoadPrompt }: PromptHistoryPro
                       <h4 className="text-sm font-medium text-gray-700 mb-3">Version History:</h4>
                       <div className="space-y-3">
                         {promptVersions[prompt.id].map((version) => (
-                          <div key={version.id} className="bg-gray-50 rounded-lg p-3 border-l-4 border-purple-200">
+                          <div key={version.id} className="bg-gray-50 rounded-lg p-3 border-l-4 border-wizard-primary-light">
                             <div className="flex items-center justify-between mb-2">
-                              <span className="text-sm font-medium text-purple-700">
+                              <span className="text-sm font-medium text-wizard-primary-dark">
                                 Version {version.version}
                               </span>
                               <div className="flex items-center gap-2">
@@ -257,7 +257,7 @@ export default function PromptHistory({ onBack, onLoadPrompt }: PromptHistoryPro
                                     ...version,
                                     total_versions: prompt.total_versions
                                   } as PromptWithVersions)}
-                                  className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded hover:bg-purple-200 transition"
+                                  className="text-xs bg-wizard-forest-mist text-wizard-primary-dark px-2 py-1 rounded hover:bg-wizard-secondary-light transition"
                                 >
                                   Load v{version.version}
                                 </button>
@@ -291,9 +291,9 @@ export default function PromptHistory({ onBack, onLoadPrompt }: PromptHistoryPro
                       </button>
                       <button
                         onClick={() => onLoadPrompt(prompt)}
-                        className="flex items-center bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-2 rounded-lg font-medium hover:from-purple-700 hover:to-pink-700 transition group-hover:shadow-md"
+                        className="flex items-center bg-emerald-magic text-white px-4 py-2 rounded-lg font-medium hover:bg-wizard-primary-dark transition group-hover:shadow-md"
                       >
-🕯️ 📖 Load Prompt
+🌿 📖 Load Prompt
                       </button>
                     </div>
                   </div>
@@ -306,7 +306,7 @@ export default function PromptHistory({ onBack, onLoadPrompt }: PromptHistoryPro
         {/* Load More (placeholder for pagination) */}
         {!loading && prompts.length > 0 && prompts.length >= 10 && (
           <div className="text-center mt-8">
-            <button className="text-purple-600 hover:text-purple-700 font-medium">
+            <button className="text-wizard-primary hover:text-wizard-primary-dark font-medium">
               Load more prompts...
             </button>
           </div>
@@ -318,7 +318,7 @@ export default function PromptHistory({ onBack, onLoadPrompt }: PromptHistoryPro
             <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 transform animate-in zoom-in-95 duration-200">
               <div className="text-center">
                 <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-3xl">🍄</span>
+                  <span className="text-3xl">🌿</span>
                 </div>
                 <h3 className="text-xl font-bold text-gray-800 mb-2">Delete Prompt?</h3>
                 <p className="text-gray-600 mb-6">

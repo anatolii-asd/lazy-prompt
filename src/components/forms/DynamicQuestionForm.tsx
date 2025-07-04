@@ -67,7 +67,7 @@ const DynamicQuestionForm: React.FC<DynamicQuestionFormProps> = ({
         <p className="text-gray-600 mb-4">No questions available</p>
         <button
           onClick={onSubmit}
-          className="bg-gradient-to-r from-purple-600 to-pink-600 text-white py-2 px-6 rounded-lg"
+          className="bg-emerald-magic text-white py-2 px-6 rounded-lg"
         >
           Continue
         </button>

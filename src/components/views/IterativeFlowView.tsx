@@ -21,11 +21,11 @@ const IterativeFlowView: React.FC<IterativeFlowViewProps> = ({
 }) => {
   if (isLoadingAnalysis) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-100 via-blue-50 to-purple-100 p-4 pt-20">
+      <div className="min-h-screen bg-gradient-to-br bg-forest-gradient p-4 pt-20">
         <div className="max-w-4xl mx-auto">
           <div className="bg-white rounded-2xl shadow-lg p-8 text-center">
-            <div className="animate-spin w-12 h-12 border-4 border-purple-600 border-t-transparent rounded-full mx-auto mb-4"></div>
-            <h2 className="text-xl font-semibold text-gray-800 mb-2">Analyzing Your Prompt</h2>
+            <div className="animate-spin w-12 h-12 border-4 border-wizard-primary-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+            <h2 className="text-xl font-semibold text-wizard-enchanted-shadow mb-2">Analyzing Your Prompt</h2>
             <p className="text-gray-600">The wizard is examining your prompt and preparing questions...</p>
           </div>
         </div>
@@ -35,14 +35,14 @@ const IterativeFlowView: React.FC<IterativeFlowViewProps> = ({
 
   if (!analysisResult) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-100 via-blue-50 to-purple-100 p-4 pt-20">
+      <div className="min-h-screen bg-gradient-to-br bg-forest-gradient p-4 pt-20">
         <div className="max-w-4xl mx-auto">
           <div className="bg-white rounded-2xl shadow-lg p-8 text-center">
-            <h2 className="text-xl font-semibold text-gray-800 mb-2">Something went wrong</h2>
+            <h2 className="text-xl font-semibold text-wizard-enchanted-shadow mb-2">Something went wrong</h2>
             <p className="text-gray-600 mb-4">Unable to analyze your prompt. Please try again.</p>
             <button
               onClick={() => setCurrentView('home')}
-              className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700"
+              className="bg-wizard-primary-600 text-white px-6 py-2 rounded-lg hover:bg-wizard-primary-700"
             >
               Go Back
             </button>
@@ -57,14 +57,14 @@ const IterativeFlowView: React.FC<IterativeFlowViewProps> = ({
   const canContinue = currentIteration < maxIterations;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-100 via-blue-50 to-purple-100 p-4 pt-20">
+    <div className="min-h-screen bg-gradient-to-br bg-forest-gradient p-4 pt-20">
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Header */}
         <div className="bg-white rounded-2xl shadow-lg p-6">
           <div className="flex items-center justify-between mb-4">
             <button
               onClick={() => setCurrentView('home')}
-              className="flex items-center space-x-2 text-gray-600 hover:text-gray-800"
+              className="flex items-center space-x-2 text-gray-600 hover:text-wizard-enchanted-shadow"
             >
               <ArrowLeft className="w-4 h-4" />
               <span>Back to Home</span>
@@ -74,7 +74,7 @@ const IterativeFlowView: React.FC<IterativeFlowViewProps> = ({
             </div>
           </div>
           
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">
+          <h1 className="text-2xl font-bold text-wizard-enchanted-shadow mb-2">
             🧙‍♂️ The Wizard's Enhancement Chamber
           </h1>
           <p className="text-gray-600 italic mb-3">
@@ -85,7 +85,7 @@ const IterativeFlowView: React.FC<IterativeFlowViewProps> = ({
           {analysisResult && (
             <div className="flex gap-4 text-sm">
               <div className="text-gray-700">
-                <span className="font-semibold">Prompt Score:</span> <span className="text-purple-600 font-bold">{analysisResult.score}/100</span>
+                <span className="font-semibold">Prompt Score:</span> <span className="text-wizard-primary-600 font-bold">{analysisResult.score}/100</span>
               </div>
               <div className="text-gray-700">
                 <span className="font-semibold">Prompt Rank:</span> <span className="text-blue-600 font-bold">{analysisResult.score_label}</span>
@@ -97,7 +97,7 @@ const IterativeFlowView: React.FC<IterativeFlowViewProps> = ({
         {/* Questions Form */}
         {showingQuestions && analysisResult.suggested_questions && (
           <div className="bg-white rounded-2xl shadow-lg p-6">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">
+            <h2 className="text-lg font-semibold text-wizard-enchanted-shadow mb-4">
               {currentIteration === 0 
                 ? "Answer these questions to improve your prompt" 
                 : `Iteration ${currentIteration + 1}: Answer questions for further improvement`
@@ -116,7 +116,7 @@ const IterativeFlowView: React.FC<IterativeFlowViewProps> = ({
         {/* Improvement Controls */}
         {currentIteration > 0 && !showingQuestions && (
           <div className="bg-white rounded-2xl shadow-lg p-6">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">Continue Improving</h2>
+            <h2 className="text-lg font-semibold text-wizard-enchanted-shadow mb-4">Continue Improving</h2>
             {canContinue ? (
               <div className="space-y-4">
                 <p className="text-gray-600">
@@ -126,7 +126,7 @@ const IterativeFlowView: React.FC<IterativeFlowViewProps> = ({
                   <button
                     onClick={onContinueImprovement}
                     disabled={isImproving}
-                    className="bg-gradient-to-r from-purple-600 to-pink-600 text-white py-2 px-6 rounded-lg font-medium hover:from-purple-700 hover:to-pink-700 disabled:opacity-50"
+                    className="bg-emerald-magic text-white py-2 px-6 rounded-lg font-medium hover:from-wizard-primary-700 hover:to-wizard-accent-700 disabled:opacity-50"
                   >
                     {isImproving ? 'Improving...' : 'Improve More'}
                   </button>
@@ -151,7 +151,7 @@ const IterativeFlowView: React.FC<IterativeFlowViewProps> = ({
                     setGeneratedPrompt(currentPrompt);
                     setCurrentView('results');
                   }}
-                  className="bg-gradient-to-r from-purple-600 to-pink-600 text-white py-2 px-6 rounded-lg font-medium hover:from-purple-700 hover:to-pink-700"
+                  className="bg-emerald-magic text-white py-2 px-6 rounded-lg font-medium hover:from-wizard-primary-700 hover:to-wizard-accent-700"
                 >
                   Finish & Save
                 </button>

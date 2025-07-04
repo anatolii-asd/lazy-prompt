@@ -25,7 +25,7 @@ const Header = ({ promptCount, onShowHistory }: { promptCount: number; onShowHis
     <div className="max-w-4xl mx-auto flex justify-between items-center">
       <div className="flex items-center space-x-2">
         <span className="text-2xl">🧙‍♂️</span>
-        <h1 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+        <h1 className="text-xl font-bold bg-emerald-magic bg-clip-text text-transparent">
           Prompt Wizard III
         </h1>
       </div>
@@ -40,7 +40,7 @@ const SlothPromptBoost = () => {
   const [userPrompt, setUserPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedPrompt, setGeneratedPrompt] = useState('');
-  const [wizardMessage, setWizardMessage] = useState("Let us weave magic into your words! 🧙‍♂️");
+  const [wizardMessage, setWizardMessage] = useState("Let us weave forest magic into your words! 🧙‍♂️🌲");
   const [promptCount, setPromptCount] = useState(0);
   const [savedPromptId, setSavedPromptId] = useState<string | null>(null);
   const [versionHistory, setVersionHistory] = useState<any[]>([]);

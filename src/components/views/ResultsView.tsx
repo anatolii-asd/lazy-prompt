@@ -103,7 +103,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
     (savedPromptId && versionHistory.length > 0 ? versionHistory.length : 1);
 
   return (
-  <div className="min-h-screen bg-gradient-to-br from-green-100 via-blue-50 to-purple-100 p-4 pt-20">
+  <div className="min-h-screen bg-forest-gradient p-4 pt-20 relative forest-sparkles">
     <div className="max-w-4xl mx-auto">
       <button 
         onClick={() => setCurrentView('home')}
@@ -113,7 +113,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
       </button>
 
       <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-gray-800 mb-2">🧙‍♂️ Behold! 🎉</h2>
+        <h2 className="text-3xl font-bold text-wizard-enchanted-shadow mb-2">🧙‍♂️ Behold! 🎉</h2>
         <p className="text-xl text-gray-600">Your prompt has been enchanted with wisdom!</p>
         <p className="text-lg text-gray-500 mt-2">Iteration {iterationNumber}</p>
       </div>
@@ -133,8 +133,8 @@ const ResultsView: React.FC<ResultsViewProps> = ({
       <div className="max-w-4xl mx-auto">
         {/* Enhanced Prompt */}
         <div>
-          <div className="bg-white rounded-3xl shadow-xl overflow-hidden">
-            <div className="bg-gradient-to-r from-green-400 to-blue-500 p-4">
+          <div className="bg-white rounded-3xl shadow-xl overflow-hidden animate-magical-glow relative z-10">
+            <div className="bg-emerald-magic p-4">
               <h3 className="text-white text-xl font-bold flex items-center">
                 🔮Your Enchanted Prompt💫
               </h3>
@@ -147,7 +147,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
                   setGeneratedPrompt(e.target.value);
                   setShowSaveSuccess(false);
                 }}
-                className="w-full bg-gray-50 rounded-2xl p-4 font-mono text-sm leading-relaxed mb-4 min-h-[300px] max-h-[500px] resize-y border-2 border-gray-200 focus:border-purple-400 focus:ring-2 focus:ring-purple-200 outline-none transition-all"
+                className="w-full bg-gray-50 rounded-2xl p-4 font-mono text-sm leading-relaxed mb-4 min-h-[300px] max-h-[500px] resize-y border-2 border-gray-200 focus:border-wizard-primary focus:ring-2 focus:ring-wizard-forest-mist outline-none transition-all"
                 placeholder="Your magical prompt will appear here..."
               />
               
@@ -163,8 +163,8 @@ const ResultsView: React.FC<ResultsViewProps> = ({
                   }}
                   className={`flex items-center justify-center space-x-2 px-4 py-3 rounded-xl font-medium shadow-md transition-all duration-300 ${
                     showCopySuccess 
-                      ? 'bg-green-600 text-white transform scale-105' 
-                      : 'bg-green-500 text-white hover:bg-green-600'
+                      ? 'bg-wizard-primary-dark text-white transform scale-105' 
+                      : 'bg-wizard-primary text-white hover:bg-wizard-primary-dark'
                   }`}
                 >
                   {showCopySuccess ? (
@@ -186,8 +186,8 @@ const ResultsView: React.FC<ResultsViewProps> = ({
                   disabled={!user || !generatedPrompt || isSaving}
                   className={`flex items-center justify-center space-x-2 px-4 py-3 rounded-xl font-medium shadow-md transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed ${
                     showSaveSuccess 
-                      ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg transform scale-105' 
-                      : 'bg-blue-500 text-white hover:bg-blue-600'
+                      ? 'bg-amber-glow text-white shadow-lg transform scale-105' 
+                      : 'bg-wizard-accent text-white hover:bg-wizard-accent-dark'
                   }`}
                 >
                   <span>
@@ -203,7 +203,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
             <button 
               onClick={handleContinueImprovement}
               disabled={isImproving || currentIteration >= 5}
-              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white text-base sm:text-xl font-bold py-3 sm:py-4 px-6 sm:px-12 rounded-2xl hover:from-purple-700 hover:to-pink-700 transform hover:scale-105 transition-all shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              className="w-full bg-emerald-magic text-white text-base sm:text-xl font-bold py-3 sm:py-4 px-6 sm:px-12 rounded-2xl hover:bg-wizard-primary-dark transform hover:scale-105 transition-all shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
             >
               {currentIteration >= 5 ? (
                 'Maximum Iterations Reached'
@@ -252,9 +252,9 @@ const ResultsView: React.FC<ResultsViewProps> = ({
                 // Redirect to home
                 setCurrentView('home');
               }}
-              className="w-full bg-gradient-to-r from-green-500 to-blue-600 text-white py-3 px-6 rounded-xl hover:from-green-600 hover:to-blue-700 transition-all font-medium shadow-md"
+              className="w-full bg-forest-gradient text-wizard-enchanted-shadow py-3 px-6 rounded-xl hover:bg-wizard-secondary-light transition-all font-medium shadow-md"
             >
-              🐦‍🔥Start Over 🧚‍♀️
+              🌱 Start Over 🌲
             </button>
           </div>
 
@@ -268,7 +268,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
                 <h4 className="text-xl font-bold text-gray-800 flex items-center justify-between">
                   <div className="flex items-center">
                     📜 Version History 
-                    <span className="ml-2 text-sm bg-purple-100 text-purple-700 px-2 py-1 rounded-full">
+                    <span className="ml-2 text-sm bg-wizard-forest-mist text-wizard-primary-dark px-2 py-1 rounded-full">
                       {versionHistory.length} versions
                     </span>
                   </div>
@@ -289,10 +289,10 @@ const ResultsView: React.FC<ResultsViewProps> = ({
                     transition={{ duration: 0.3 }}
                     className="overflow-hidden"
                   >
-                    <div className="px-6 pb-6 border-t border-gray-100">
+                    <div className="px-6 pb-6 border-t border-wizard-forest-mist">
                   {loadingVersions ? (
                     <div className="text-center py-4">
-                      <div className="animate-spin w-6 h-6 border-2 border-purple-600 border-t-transparent rounded-full mx-auto mb-2"></div>
+                      <div className="animate-spin w-6 h-6 border-2 border-wizard-primary border-t-transparent rounded-full mx-auto mb-2"></div>
                       <p className="text-gray-600">Loading versions...</p>
                     </div>
                   ) : (
@@ -309,7 +309,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
                               Version {version.version}
                             </span>
                             {version.version === Math.max(...versionHistory.map(v => v.version)) && (
-                              <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium">
+                              <span className="bg-wizard-forest-mist text-wizard-primary-dark px-2 py-1 rounded-full text-xs font-medium">
                                 Current
                               </span>
                             )}
@@ -332,7 +332,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
                             animate={{ height: "auto", opacity: 1 }}
                             exit={{ height: 0, opacity: 0 }}
                             transition={{ duration: 0.3 }}
-                            className="overflow-hidden border-t border-gray-100"
+                            className="overflow-hidden border-t border-wizard-forest-mist"
                           >
                             <div className="p-4 bg-gray-50">
                               <h5 className="text-sm font-medium text-gray-700 mb-2">Generated Prompt:</h5>
@@ -360,16 +360,16 @@ const ResultsView: React.FC<ResultsViewProps> = ({
     {/* Loading Overlay */}
     {isGenerating && (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-3xl p-8 max-w-md w-full mx-4 text-center shadow-2xl">
-          <h3 className="text-2xl font-bold text-gray-800 mb-2">Sloth is thinking... 💭</h3>
+        <div className="bg-white rounded-3xl p-8 max-w-md w-full mx-4 text-center shadow-2xl animate-magical-glow border-2 border-wizard-forest-mist">
+          <h3 className="text-2xl font-bold text-gray-800 mb-2">Forest wizard is casting... 💭</h3>
           <p className="text-gray-600 mb-4">{wizardMessage}</p>
           
           <div className="flex justify-center space-x-2">
-            {['💤', '😴', '🦥'].map((emoji, i) => (
+            {['🌲', '✨', '🧙‍♂️'].map((emoji, i) => (
               <div
                 key={i}
-                className={`text-2xl transition-all duration-500 ${
-                  Math.floor(Date.now() / 500) % 3 === i ? 'animate-bounce' : 'opacity-50'
+                className={`text-2xl transition-all duration-500 animate-forest-sway ${
+                  Math.floor(Date.now() / 500) % 3 === i ? 'animate-sparkle' : 'opacity-50'
                 }`}
               >
                 {emoji}

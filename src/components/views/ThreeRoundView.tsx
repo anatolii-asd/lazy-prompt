@@ -69,7 +69,7 @@ const ThreeRoundView: React.FC<ThreeRoundViewProps> = ({
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-100 via-blue-50 to-purple-100 p-4 pt-20">
+    <div className="min-h-screen bg-gradient-to-br bg-forest-gradient p-4 pt-20">
       <div className="max-w-4xl mx-auto">
         <button 
           onClick={() => setCurrentView('home')}
@@ -80,7 +80,7 @@ const ThreeRoundView: React.FC<ThreeRoundViewProps> = ({
 
         {/* Header */}
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-800 mb-2">
+          <h2 className="text-3xl font-bold text-wizard-enchanted-shadow mb-2">
             🎯 {isUkrainian ? `Раунд ${currentRound} з 3` : `Round ${currentRound} of 3`}
           </h2>
           <p className="text-xl text-gray-600">
@@ -125,8 +125,8 @@ const ThreeRoundView: React.FC<ThreeRoundViewProps> = ({
 
         {/* Current Question */}
         <div className="max-w-2xl mx-auto">
-          <div className="bg-white rounded-3xl shadow-xl p-8 border-2 border-gray-100 mb-6">
-            <h3 className="text-2xl font-bold text-gray-800 mb-2 text-center">
+          <div className="bg-white rounded-3xl shadow-xl p-8 border-2 border-wizard-forest-mist mb-6">
+            <h3 className="text-2xl font-bold text-wizard-enchanted-shadow mb-2 text-center">
               {currentQuestion.topic === 'output_format' ? (isUkrainian ? 'Формат виводу' : 'Output Format') : 
                currentQuestion.topic === 'goal' ? (isUkrainian ? 'Мета' : 'Goal') :
                currentQuestion.topic === 'role' ? (isUkrainian ? 'Роль' : 'Role') :
@@ -204,7 +204,7 @@ const ThreeRoundView: React.FC<ThreeRoundViewProps> = ({
       {isGenerating && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-3xl p-8 max-w-md w-full mx-4 text-center shadow-2xl">
-            <h3 className="text-2xl font-bold text-gray-800 mb-2">
+            <h3 className="text-2xl font-bold text-wizard-enchanted-shadow mb-2">
               {isUkrainian ? 'Чарівник розмірковує... 💭' : 'The Wizard is contemplating... 💭'}
             </h3>
             <p className="text-gray-600 mb-4">{wizardMessage}</p>

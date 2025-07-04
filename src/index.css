@@ -14,6 +14,71 @@
   }
 }
 
+@keyframes magical-glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(4, 120, 87, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(4, 120, 87, 0.6), 0 0 30px rgba(4, 120, 87, 0.4);
+  }
+}
+
+@keyframes sparkle {
+  0%, 100% {
+    opacity: 0;
+    transform: scale(0.8) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2) rotate(180deg);
+  }
+}
+
+@keyframes forest-sway {
+  0%, 100% {
+    transform: translateX(0px) rotate(0deg);
+  }
+  33% {
+    transform: translateX(-2px) rotate(-1deg);
+  }
+  66% {
+    transform: translateX(2px) rotate(1deg);
+  }
+}
+
 .animate-slide-in {
   animation: slide-in 0.3s ease-out;
+}
+
+.animate-magical-glow {
+  animation: magical-glow 3s ease-in-out infinite;
+}
+
+.animate-sparkle {
+  animation: sparkle 2s ease-in-out infinite;
+}
+
+.animate-forest-sway {
+  animation: forest-sway 4s ease-in-out infinite;
+}
+
+/* Forest wizard background effects */
+.forest-sparkles::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    radial-gradient(2px 2px at 20px 30px, rgba(245, 158, 11, 0.4), transparent),
+    radial-gradient(2px 2px at 40px 70px, rgba(4, 120, 87, 0.3), transparent),
+    radial-gradient(1px 1px at 90px 40px, rgba(245, 158, 11, 0.5), transparent),
+    radial-gradient(1px 1px at 130px 80px, rgba(4, 120, 87, 0.4), transparent),
+    radial-gradient(2px 2px at 160px 30px, rgba(245, 158, 11, 0.3), transparent);
+  background-repeat: repeat;
+  background-size: 200px 100px;
+  animation: sparkle 8s linear infinite;
+  pointer-events: none;
+  z-index: 1;
 }

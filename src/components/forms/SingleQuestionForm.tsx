@@ -83,8 +83,8 @@ const SingleQuestionForm: React.FC<SingleQuestionFormProps> = ({
               <div
                 key={i}
                 className={`w-2 h-2 rounded-full ${
-                  i < questionNumber ? 'bg-purple-600' : 
-                  i === questionNumber - 1 ? 'bg-purple-400' : 'bg-gray-200'
+                  i < questionNumber ? 'bg-wizard-primary-600' : 
+                  i === questionNumber - 1 ? 'bg-wizard-primary-400' : 'bg-gray-200'
                 }`}
               />
             ))}
@@ -97,7 +97,7 @@ const SingleQuestionForm: React.FC<SingleQuestionFormProps> = ({
           <textarea
             value={localAnswer}
             onChange={(e) => handleLocalChange(e.target.value)}
-            className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-y min-h-[120px] text-gray-700"
+            className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wizard-primary-500 focus:border-transparent resize-y min-h-[120px] text-gray-700"
             placeholder="Enter your answer..."
           />
         )}
@@ -107,7 +107,7 @@ const SingleQuestionForm: React.FC<SingleQuestionFormProps> = ({
             type="text"
             value={localAnswer}
             onChange={(e) => handleLocalChange(e.target.value)}
-            className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-700"
+            className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wizard-primary-500 focus:border-transparent text-gray-700"
             placeholder="Enter your answer..."
           />
         )}
@@ -131,7 +131,7 @@ const SingleQuestionForm: React.FC<SingleQuestionFormProps> = ({
                   value={option}
                   checked={localAnswer === option && !showCustomInput}
                   onChange={(e) => handleLocalChange(e.target.value)}
-                  className="text-purple-600 focus:ring-purple-500"
+                  className="text-wizard-primary-600 focus:ring-wizard-primary-500"
                 />
                 <span className="text-gray-700">{option}</span>
               </label>
@@ -145,7 +145,7 @@ const SingleQuestionForm: React.FC<SingleQuestionFormProps> = ({
                 value="__custom__"
                 checked={showCustomInput}
                 onChange={(e) => handleLocalChange(e.target.value)}
-                className="text-purple-600 focus:ring-purple-500"
+                className="text-wizard-primary-600 focus:ring-wizard-primary-500"
               />
               <span className="text-gray-700">✨ Custom answer</span>
             </label>
@@ -158,7 +158,7 @@ const SingleQuestionForm: React.FC<SingleQuestionFormProps> = ({
                   value={customValue}
                   onChange={(e) => handleCustomInputChange(e.target.value)}
                   placeholder="Enter your custom answer..."
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-700"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wizard-primary-500 focus:border-transparent text-gray-700"
                   autoFocus
                 />
               </div>
@@ -178,7 +178,7 @@ const SingleQuestionForm: React.FC<SingleQuestionFormProps> = ({
           <button
             onClick={handleConfirm}
             disabled={isSubmitting}
-            className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 px-6 rounded-lg font-medium hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+            className="flex-1 bg-emerald-magic text-white py-3 px-6 rounded-lg font-medium hover:bg-wizard-primary-dark disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
           >
             {isSubmitting ? (
               <div className="flex items-center justify-center space-x-2">
