@@ -132,27 +132,24 @@ const ResultsView: React.FC<ResultsViewProps> = ({
 
       <div className="max-w-4xl mx-auto">
         {/* Enhanced Prompt */}
-        <div>
-          <div className="bg-white rounded-3xl shadow-xl overflow-hidden animate-magical-glow relative z-10">
-            <div className="bg-emerald-magic p-4">
-              <h3 className="text-white text-xl font-bold flex items-center">
-                🔮Your Enchanted Prompt💫
-              </h3>
-            </div>
-            <div className="p-6">
-              {/* Editable prompt area */}
-              <textarea
-                value={generatedPrompt}
-                onChange={(e) => {
-                  setGeneratedPrompt(e.target.value);
-                  setShowSaveSuccess(false);
-                }}
-                className="w-full bg-gray-50 rounded-2xl p-4 font-mono text-sm leading-relaxed mb-4 min-h-[300px] max-h-[500px] resize-y border-2 border-gray-200 focus:border-wizard-primary focus:ring-2 focus:ring-wizard-forest-mist outline-none transition-all"
-                placeholder="Your magical prompt will appear here..."
-              />
-              
-              {/* Copy and Save buttons */}
-              <div className="grid grid-cols-2 gap-3">
+        <div className="bg-white rounded-3xl shadow-xl p-8 border-2 border-wizard-forest-mist animate-magical-glow relative z-10">
+          <h3 className="text-2xl font-bold text-wizard-enchanted-shadow mb-6 flex items-center justify-center">
+            🔮Your Enchanted Prompt💫
+          </h3>
+          
+          {/* Editable prompt area */}
+          <textarea
+            value={generatedPrompt}
+            onChange={(e) => {
+              setGeneratedPrompt(e.target.value);
+              setShowSaveSuccess(false);
+            }}
+            className="w-full h-40 p-4 border-2 border-gray-200 rounded-2xl resize-none focus:border-wizard-primary focus:ring-4 focus:ring-wizard-forest-mist outline-none transition-all text-gray-700 placeholder-gray-400 mb-4"
+            placeholder="Your magical prompt will appear here..."
+          />
+          
+          {/* Copy and Save buttons */}
+          <div className="grid grid-cols-2 gap-3">
                 <button 
                   onClick={async () => {
                     await navigator.clipboard.writeText(generatedPrompt);
@@ -195,10 +192,9 @@ const ResultsView: React.FC<ResultsViewProps> = ({
                   </span>
                 </button>
               </div>
-            </div>
-          </div>
+        </div>
           
-          {/* Improve Further Button */}
+        {/* Improve Further Button */}
           <div className="bg-white rounded-3xl shadow-xl mt-6 p-6">
             <button 
               onClick={handleContinueImprovement}
