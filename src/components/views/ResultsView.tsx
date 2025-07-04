@@ -248,7 +248,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
                 // Redirect to home
                 setCurrentView('home');
               }}
-              className="w-full bg-white text-wizard-enchanted-shadow hover:bg-wizard-forest-mist transition-all font-medium border-2 border-wizard-secondary-dark"
+              className="w-full bg-white text-wizard-primary hover:bg-wizard-forest-mist transition-all font-medium border-2 border-wizard-primary"
             >
               🌱 Start Over 🌲
             </button>
