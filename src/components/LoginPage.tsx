@@ -39,7 +39,7 @@ export default function LoginPage() {
             <h1 className="text-4xl font-bold bg-emerald-magic bg-clip-text text-transparent mb-2">
               Prompt Wizard III
             </h1>
-            <p className="text-gray-600">🧙‍♂️ Where forest magic meets your creative prompts 🌲</p>
+            <p className="text-gray-600">🧙‍♂️ Where magic meets your creative prompts 🌲</p>
           </div>
 
           {!emailSent ? (
@@ -118,7 +118,7 @@ export default function LoginPage() {
 
         <div className="text-center mt-6 text-sm text-gray-600">
           <p>
-            By signing in, you agree to use this tool for enchanted forest magic only. 🧙‍♂️🌲
+            By signing in, you agree to use this tool for magical prompt generation only. 🧙‍♂️🌲
           </p>
         </div>
       </div>

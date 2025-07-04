@@ -8,7 +8,7 @@ export default {
     extend: {
       colors: {
         wizard: {
-          // Enchanted Forest Wizard Palette
+          // Enchanted Wizard Palette
           primary: '#047857',      // Deep Emerald Green
           secondary: '#e5e7eb',    // Moonlit Silver
           accent: '#f59e0b',       // Amber Glow

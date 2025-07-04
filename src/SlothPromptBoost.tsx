@@ -40,7 +40,7 @@ const SlothPromptBoost = () => {
   const [userPrompt, setUserPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedPrompt, setGeneratedPrompt] = useState('');
-  const [wizardMessage, setWizardMessage] = useState("Let us weave forest magic into your words! 🧙‍♂️🌲");
+  const [wizardMessage, setWizardMessage] = useState("Let us weave magic into your words! 🧙‍♂️🌲");
   const [promptCount, setPromptCount] = useState(0);
   const [savedPromptId, setSavedPromptId] = useState<string | null>(null);
   const [versionHistory, setVersionHistory] = useState<any[]>([]);
