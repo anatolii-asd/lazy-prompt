@@ -136,6 +136,13 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
     }
   }, [language]);
 
+  // Notify parent component when recording state changes
+  useEffect(() => {
+    if (onRecordingStateChange) {
+      onRecordingStateChange(isRecording || isProcessing);
+    }
+  }, [isRecording, isProcessing, onRecordingStateChange]);
+
   if (!isAudioSupported) {
     return null; // Hide component if not supported
   }
