@@ -8,8 +8,8 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS'
 };
 
-// System prompt for prompt analysis
-const ANALYZE_SYSTEM_PROMPT = `You are an expert prompt engineering assistant. Your job is to analyze user prompts and provide structured feedback for improvement. 
+// System prompt for prompt analysis (English)
+const ANALYZE_SYSTEM_PROMPT_EN = `You are an expert prompt engineering assistant. Your job is to analyze user prompts and provide structured feedback for improvement. 
 
 CRITICAL: You must respond with ONLY valid JSON. Do not use markdown formatting, do not wrap in code blocks, do not add any text before or after the JSON. Start your response directly with { and end with }.
 
@@ -26,16 +26,48 @@ Respond with this exact JSON structure:
   }
 }
 
-Each question object should have: {"question": string, "type": "text|select|textarea", "options": [array] (only for select type)}
+Each question object should have: {"question": string, "type": "select|textarea", "options": [array] (only for select type)}
 
 Analyze the prompt for: clarity, specificity, context, defined goals, output format, role definition, examples, and constraints. Focus on generating helpful questions that will improve the prompt.`;
 
-// System prompt for prompt improvement
-const IMPROVE_SYSTEM_PROMPT = `You are a prompt improvement specialist. I will provide you with an original prompt and Q&A pairs that contain additional context and requirements. Your task is to create an enhanced version of the prompt that naturally incorporates all the information from the Q&A pairs.
+// System prompt for prompt analysis (Ukrainian)
+const ANALYZE_SYSTEM_PROMPT_UK = `Ви - експерт з розробки промтів. Ваша задача - аналізувати промти користувачів і надавати структурований зворотній зв'язок для покращення.
+
+КРИТИЧНО ВАЖЛИВО: Ви повинні відповісти ЛИШЕ валідним JSON. Не використовуйте markdown форматування, не обгортайте у блоки коду, не додавайте жодного тексту до чи після JSON. Починайте свою відповідь безпосередньо з { і закінчуйте }.
+
+Відповідайте в цій точній JSON структурі:
+
+{
+  "score": number (0-100),
+  "score_label": string ("Відмінно", "Добре", "Потребує покращення", "Погано"),
+  "suggested_questions": {
+    "goals": [масив об'єктів питань],
+    "context": [масив об'єктів питань],
+    "specificity": [масив об'єктів питань],
+    "format": [масив об'єктів питань]
+  }
+}
+
+Кожен об'єкт питання повинен мати: {"question": string, "type": "select|textarea", "options": [масив] (лише для типу select)}
+
+Аналізуйте промт на: чіткість, специфічність, контекст, визначені цілі, формат виводу, визначення ролі, приклади та обмеження. Зосередьтесь на генерації корисних питань, які покращать промт.`;
+
+// System prompt for prompt improvement (English)
+const IMPROVE_SYSTEM_PROMPT_EN = `You are a prompt improvement specialist. I will provide you with an original prompt and Q&A pairs that contain additional context and requirements. Your task is to create an enhanced version of the prompt that naturally incorporates all the information from the Q&A pairs.
 
 CRITICAL: You must respond with ONLY valid JSON. Do not use markdown formatting, do not wrap in code blocks, do not add any text before or after the JSON. Start your response directly with { and end with }.
 
 Return only:
+{
+  "improved_prompt": string
+}`;
+
+// System prompt for prompt improvement (Ukrainian)
+const IMPROVE_SYSTEM_PROMPT_UK = `Ви - спеціаліст з покращення промтів. Я надам вам оригінальний промт та пари питань-відповідей, які містять додатковий контекст і вимоги. Ваша задача - створити покращену версію промта, яка природно включає всю інформацію з пар питань-відповідей.
+
+КРИТИЧНО ВАЖЛИВО: Ви повинні відповісти ЛИШЕ валідним JSON. Не використовуйте markdown форматування, не обгортайте у блоки коду, не додавайте жодного тексту до чи після JSON. Починайте свою відповідь безпосередньо з { і закінчуйте }.
+
+Поверніть лише:
 {
   "improved_prompt": string
 }`;
@@ -102,13 +134,16 @@ async function ai_call(userPrompt: string, systemPrompt: string, functionType: '
 /**
  * Analyze a prompt and return structured feedback
  */
-async function analyzePrompt(prompt: string): Promise<any> {
+async function analyzePrompt(prompt: string, language?: string): Promise<any> {
   if (!prompt || prompt.trim().length === 0) {
     throw new Error('Prompt is required');
   }
   
+  // Choose system prompt based on language
+  const systemPrompt = (language === 'uk' || language === 'ua') ? ANALYZE_SYSTEM_PROMPT_UK : ANALYZE_SYSTEM_PROMPT_EN;
+  
   const userPrompt = `Please analyze this prompt: "${prompt}"`;
-  const responseContent = await ai_call(userPrompt, ANALYZE_SYSTEM_PROMPT, 'analyze');
+  const responseContent = await ai_call(userPrompt, systemPrompt, 'analyze');
   
   // Extract JSON from response (handle markdown code blocks)
   const jsonStart = responseContent.indexOf('{');
@@ -131,13 +166,16 @@ async function analyzePrompt(prompt: string): Promise<any> {
 /**
  * Improve a prompt based on user answers
  */
-async function improvePrompt(promptToImprove: string, questionsAndAnswers: Array<{question: string, answer: string}>): Promise<any> {
+async function improvePrompt(promptToImprove: string, questionsAndAnswers: Array<{question: string, answer: string}>, language?: string): Promise<any> {
+  // Choose system prompt based on language
+  const systemPrompt = (language === 'uk' || language === 'ua') ? IMPROVE_SYSTEM_PROMPT_UK : IMPROVE_SYSTEM_PROMPT_EN;
+  
   const improvePrompt = `Original prompt: "${promptToImprove}"
 
 Q&A pairs with additional context:
 ${JSON.stringify(questionsAndAnswers, null, 2)}`;
   
-  const responseContent = await ai_call(improvePrompt, IMPROVE_SYSTEM_PROMPT, 'improve');
+  const responseContent = await ai_call(improvePrompt, systemPrompt, 'improve');
   
   // Extract JSON from response (handle markdown code blocks)
   const jsonStart = responseContent.indexOf('{');
@@ -191,8 +229,8 @@ serve(async (req) => {
     const finalOperation = (urlOperation === 'analyze' || urlOperation === 'improve') ? urlOperation : operation;
     
     if (finalOperation === 'analyze') {
-      const { prompt } = requestBody;
-      const result = await analyzePrompt(prompt);
+      const { prompt, language } = requestBody;
+      const result = await analyzePrompt(prompt, language);
       
       return new Response(JSON.stringify(result), {
         headers: {
@@ -202,8 +240,8 @@ serve(async (req) => {
       });
       
     } else if (finalOperation === 'improve') {
-      const { prompt_to_improve, questions_and_answers } = requestBody;
-      const result = await improvePrompt(prompt_to_improve, questions_and_answers);
+      const { prompt_to_improve, questions_and_answers, language } = requestBody;
+      const result = await improvePrompt(prompt_to_improve, questions_and_answers, language);
       
       return new Response(JSON.stringify(result), {
         headers: {

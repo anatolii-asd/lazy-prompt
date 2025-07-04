@@ -1,0 +1,111 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "close": "Close"
+  },
+  "auth": {
+    "signIn": "Sign In",
+    "signOut": "Sign Out",
+    "emailPlaceholder": "Enter your email",
+    "magicLinkSent": "Magic link sent! Check your email.",
+    "signInWithMagicLink": "Sign in with magic link",
+    "welcomeBack": "Welcome back!",
+    "getStarted": "Get started with your magical prompts"
+  },
+  "navigation": {
+    "home": "Home",
+    "myPrompts": "My Prompts",
+    "templates": "Templates",
+    "profile": "Profile"
+  },
+  "wizard": {
+    "quotes": [
+      "Why struggle when magic can guide your way? 🧙‍♂️",
+      "Every great prompt begins with a wise question! ✨",
+      "Let my wisdom transform your thoughts into power! 🔮",
+      "I shall conjure the perfect words for you! 📜",
+      "Ancient knowledge meets modern brilliance! 🌟"
+    ],
+    "title": "Prompt Wizard III",
+    "subtitle": "Master the Art of AI Communication",
+    "description": "Transform your ideas into powerful prompts with magical precision"
+  },
+  "home": {
+    "title": "Welcome to Prompt Wizard III",
+    "subtitle": "Your AI-Powered Prompt Enhancement Assistant",
+    "description": "Transform your simple ideas into powerful, effective prompts that get better results from AI assistants.",
+    "getStarted": "Get Started",
+    "howItWorks": "How It Works",
+    "features": "Features"
+  },
+  "prompt": {
+    "enterPrompt": "Enter your prompt",
+    "placeholder": "Type your prompt here...",
+    "analyze": "Analyze Prompt",
+    "improve": "Improve Prompt",
+    "analyzing": "Analyzing...",
+    "improving": "Improving...",
+    "score": "Score",
+    "suggestions": "Suggestions",
+    "improvedPrompt": "Improved Prompt",
+    "originalPrompt": "Original Prompt"
+  },
+  "categories": {
+    "goals": "Goals",
+    "context": "Context", 
+    "specificity": "Specificity",
+    "format": "Format"
+  },
+  "profile": {
+    "myPrompts": "My Prompts",
+    "promptCount": "prompts",
+    "signOut": "Sign Out",
+    "language": "Language",
+    "settings": "Settings"
+  },
+  "language": {
+    "english": "English",
+    "ukrainian": "Українська",
+    "selectLanguage": "Select Language"
+  },
+  "prompts": {
+    "noPrompts": "No prompts yet",
+    "loadMore": "Load More",
+    "deleteConfirm": "Are you sure you want to delete this prompt?",
+    "deleteSuccess": "Prompt deleted successfully",
+    "saveSuccess": "Prompt saved successfully"
+  },
+  "scores": {
+    "excellent": "Excellent",
+    "good": "Good",
+    "needsWork": "Needs Work",
+    "poor": "Poor"
+  },
+  "buttons": {
+    "loadPrompt": "Load Prompt",
+    "savePrompt": "Save Prompt",
+    "newPrompt": "New Prompt",
+    "tryAgain": "Try Again",
+    "showMore": "Show More",
+    "showLess": "Show Less"
+  },
+  "errors": {
+    "promptRequired": "Please enter a prompt",
+    "analysisfailed": "Analysis failed. Please try again.",
+    "improvementFailed": "Improvement failed. Please try again.",
+    "savePromptFailed": "Failed to save prompt",
+    "loadPromptsFailed": "Failed to load prompts",
+    "deletePromptFailed": "Failed to delete prompt",
+    "networkError": "Network error. Please check your connection.",
+    "genericError": "Something went wrong. Please try again."
+  }
+}

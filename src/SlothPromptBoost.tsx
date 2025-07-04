@@ -35,7 +35,7 @@ const Header = ({ promptCount, onShowHistory }: { promptCount: number; onShowHis
 );
 
 const SlothPromptBoost = () => {
-  const { user } = useAuth();
+  const { user, language } = useAuth();
   const [currentView, setCurrentView] = useState('home');
   const [userPrompt, setUserPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -213,7 +213,8 @@ const SlothPromptBoost = () => {
       
       const request = {
         prompt_to_improve: userPrompt,
-        questions_and_answers: questionsAndAnswers
+        questions_and_answers: questionsAndAnswers,
+        language
       };
 
       const { data, error } = await promptService.improvePrompt(request);
@@ -302,7 +303,7 @@ const SlothPromptBoost = () => {
       }
       
       // Analyze the current improved prompt to get new questions
-      const { data, error } = await promptService.analyzePrompt({ prompt: currentPrompt });
+      const { data, error } = await promptService.analyzePrompt({ prompt: currentPrompt, language });
       
       if (error) {
         throw new Error(error.message || 'Failed to analyze improved prompt');
@@ -345,7 +346,7 @@ const SlothPromptBoost = () => {
     setCurrentIterationAnswers({});
     
     try {
-      const { data, error } = await promptService.analyzePrompt({ prompt: userPrompt });
+      const { data, error } = await promptService.analyzePrompt({ prompt: userPrompt, language });
       
       if (error) {
         throw new Error(error.message || 'Failed to analyze prompt');

@@ -67,6 +67,7 @@ export interface EnhancedPromptResponse {
 // New interfaces for iterative improvement flow
 export interface AnalyzePromptRequest {
   prompt: string
+  language?: string
 }
 
 export interface AnalyzePromptResponse {
@@ -89,6 +90,7 @@ export interface QuestionItem {
 export interface ImprovePromptRequest {
   prompt_to_improve: string
   questions_and_answers: Array<{question: string, answer: string}>
+  language?: string
 }
 
 export interface ImprovePromptResponse {
