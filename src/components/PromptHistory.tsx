@@ -302,7 +302,7 @@ export default function PromptHistory({ onBack, onLoadPrompt }: PromptHistoryPro
             <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 transform animate-in zoom-in-95 duration-200">
               <div className="text-center">
                 <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-3xl">🌿</span>
+                  <span className="text-3xl">🍄</span>
                 </div>
                 <h3 className="text-xl font-bold text-gray-800 mb-2">Delete Prompt?</h3>
                 <p className="text-gray-600 mb-6">
