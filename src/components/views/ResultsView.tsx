@@ -351,10 +351,9 @@ const ResultsView: React.FC<ResultsViewProps> = ({
           )}
         </div>
       </div>
-    </div>
 
-    {/* Loading Overlay */}
-    {isGenerating && (
+      {/* Loading Overlay */}
+      {isGenerating && (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div className="bg-white rounded-3xl p-8 max-w-md w-full mx-4 text-center shadow-2xl animate-magical-glow border-2 border-wizard-forest-mist">
           <h3 className="text-2xl font-bold text-gray-800 mb-2">Wizard is casting... 💭</h3>
