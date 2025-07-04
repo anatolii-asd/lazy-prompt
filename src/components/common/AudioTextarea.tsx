@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import React, { forwardRef, useEffect, useRef } from 'react';
 import { AudioRecorder } from './AudioRecorder';
 
 interface AudioTextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
@@ -20,6 +20,9 @@ export const AudioTextarea = forwardRef<HTMLTextAreaElement, AudioTextareaProps>
     disabled,
     ...props 
   }, ref) => {
+    const internalRef = useRef<HTMLTextAreaElement>(null);
+    const textareaRef = (ref as React.RefObject<HTMLTextAreaElement>) || internalRef;
+
     const handleTranscriptionComplete = (newText: string) => {
       if (onValueChange) {
         onValueChange(newText);
@@ -33,14 +36,37 @@ export const AudioTextarea = forwardRef<HTMLTextAreaElement, AudioTextareaProps>
       }
     };
 
+    const adjustHeight = () => {
+      const textarea = textareaRef.current;
+      if (textarea) {
+        textarea.style.height = 'auto';
+        textarea.style.height = `${textarea.scrollHeight}px`;
+      }
+    };
+
+    useEffect(() => {
+      adjustHeight();
+    }, [value]);
+
+    const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      onChange(e);
+      adjustHeight();
+    };
+
     return (
-      <div className="relative overflow-hidden rounded-2xl">
+      <div className="relative overflow-hidden" style={{ WebkitTapHighlightColor: 'transparent' }}>
         <textarea
-          ref={ref}
+          ref={textareaRef}
           value={value}
-          onChange={onChange}
+          onChange={handleChange}
           disabled={disabled}
-          className={`${className} pb-16`}
+          className={`${className} pb-16 outline-none focus:outline-none !border-gray-300 focus:!border-wizard-primary-500 resize-none overflow-hidden`}
+          style={{ 
+            WebkitTapHighlightColor: 'transparent', 
+            outline: 'none',
+            border: '1px solid #d1d5db',
+            borderRadius: '0.5rem'
+          }}
           {...props}
         />
         {enableAudioRecording && (
