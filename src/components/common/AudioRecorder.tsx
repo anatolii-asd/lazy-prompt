@@ -43,6 +43,7 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
   currentText,
   className = '',
   isDisabled = false,
+  onRecordingStateChange,
 }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
