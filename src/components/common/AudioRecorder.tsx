@@ -9,6 +9,7 @@ interface AudioRecorderProps {
   currentText: string;
   className?: string;
   isDisabled?: boolean;
+  onRecordingStateChange?: (isRecording: boolean) => void;
 }
 
 interface SpeechRecognitionEvent extends Event {
