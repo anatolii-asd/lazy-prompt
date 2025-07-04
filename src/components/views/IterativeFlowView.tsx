@@ -24,7 +24,7 @@ const IterativeFlowView: React.FC<IterativeFlowViewProps> = ({
       <div className="min-h-screen bg-gradient-to-br bg-forest-gradient p-4 pt-20">
         <div className="max-w-4xl mx-auto">
           <div className="bg-white rounded-2xl shadow-lg p-8 text-center">
-            <div className="animate-spin w-12 h-12 border-4 border-wizard-primary-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+            <div className="animate-spin w-12 h-12 border-4 border-wizard-primary border-t-transparent rounded-full mx-auto mb-4"></div>
             <h2 className="text-xl font-semibold text-wizard-enchanted-shadow mb-2">Analyzing Your Prompt</h2>
             <p className="text-gray-600">The wizard is examining your prompt and preparing questions...</p>
           </div>
@@ -42,7 +42,7 @@ const IterativeFlowView: React.FC<IterativeFlowViewProps> = ({
             <p className="text-gray-600 mb-4">Unable to analyze your prompt. Please try again.</p>
             <button
               onClick={() => setCurrentView('home')}
-              className="bg-wizard-primary-600 text-white px-6 py-2 rounded-lg hover:bg-wizard-primary-700"
+              className="bg-wizard-primary text-white px-6 py-2 rounded-lg hover:bg-wizard-primary-dark"
             >
               Go Back
             </button>
@@ -85,10 +85,10 @@ const IterativeFlowView: React.FC<IterativeFlowViewProps> = ({
           {analysisResult && (
             <div className="flex gap-4 text-sm">
               <div className="text-gray-700">
-                <span className="font-semibold">Prompt Score:</span> <span className="text-wizard-primary-600 font-bold">{analysisResult.score}/100</span>
+                <span className="font-semibold">Prompt Score:</span> <span className="text-wizard-primary font-bold">{analysisResult.score}/100</span>
               </div>
               <div className="text-gray-700">
-                <span className="font-semibold">Prompt Rank:</span> <span className="text-blue-600 font-bold">{analysisResult.score_label}</span>
+                <span className="font-semibold">Prompt Rank:</span> <span className="text-wizard-accent font-bold">{analysisResult.score_label}</span>
               </div>
             </div>
           )}
