@@ -181,10 +181,10 @@ const ResultsView: React.FC<ResultsViewProps> = ({
                 <button 
                   onClick={handleSavePrompt}
                   disabled={!user || !generatedPrompt || isSaving}
-                  className={`flex items-center justify-center space-x-2 px-4 py-3 rounded-xl font-medium shadow-md transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed ${
+                  className={`flex items-center justify-center space-x-2 px-4 py-3 rounded-xl font-medium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed ${
                     showSaveSuccess 
-                      ? 'bg-wizard-primary-light text-white transform scale-105' 
-                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                      ? 'bg-wizard-primary text-white transform scale-105 shadow-lg' 
+                      : 'bg-white text-wizard-primary hover:bg-wizard-forest-mist border-2 border-wizard-primary'
                   }`}
                 >
                   <span>
@@ -248,7 +248,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
                 // Redirect to home
                 setCurrentView('home');
               }}
-              className="w-full bg-gray-100 text-gray-700 py-3 px-6 rounded-xl hover:bg-gray-200 transition-all font-medium"
+              className="w-full bg-white text-wizard-enchanted-shadow hover:bg-wizard-forest-mist transition-all font-medium border-2 border-wizard-secondary-dark"
             >
               🌱 Start Over 🌲
             </button>
