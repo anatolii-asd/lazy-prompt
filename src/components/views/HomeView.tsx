@@ -15,10 +15,11 @@ const HomeView: React.FC<HomeViewProps> = ({
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-wizard-enchanted-shadow mb-2">
-            🧙‍♂️ Prompt Wizard III
+          <h1 className="text-2xl sm:text-4xl font-bold text-wizard-enchanted-shadow mb-2">
+            <span className="hidden sm:inline">🧙‍♂️ Prompt Wizard III</span>
+            <span className="sm:hidden">🧙‍♂️</span>
           </h1>
-          <p className="text-xl text-gray-600 mb-4">Where wisdom meets your creative prompts</p>
+          <p className="hidden sm:block text-xl text-gray-600 mb-4">Where wisdom meets your creative prompts</p>
           <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-4 max-w-md mx-auto border border-gray-200">
             <p className="text-gray-700 italic">"{randomQuote}"</p>
           </div>
