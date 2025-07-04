@@ -183,8 +183,8 @@ const ResultsView: React.FC<ResultsViewProps> = ({
                   disabled={!user || !generatedPrompt || isSaving}
                   className={`flex items-center justify-center space-x-2 px-4 py-3 rounded-xl font-medium shadow-md transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed ${
                     showSaveSuccess 
-                      ? 'bg-amber-glow text-white shadow-lg transform scale-105' 
-                      : 'bg-wizard-accent text-white hover:bg-wizard-accent-dark'
+                      ? 'bg-wizard-primary-light text-white transform scale-105' 
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                   }`}
                 >
                   <span>
@@ -248,7 +248,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
                 // Redirect to home
                 setCurrentView('home');
               }}
-              className="w-full bg-forest-gradient text-wizard-enchanted-shadow py-3 px-6 rounded-xl hover:bg-wizard-secondary-light transition-all font-medium shadow-md"
+              className="w-full bg-gray-100 text-gray-700 py-3 px-6 rounded-xl hover:bg-gray-200 transition-all font-medium"
             >
               🌱 Start Over 🌲
             </button>
