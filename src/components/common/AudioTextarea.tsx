@@ -42,7 +42,8 @@ export const AudioTextarea = forwardRef<HTMLTextAreaElement, AudioTextareaProps>
           value={value}
           onChange={onChange}
           disabled={disabled}
-          className={className}
+          className={`${className} ${isRecording ? 'pb-16' : ''}`}
+          style={{ transition: 'padding-bottom 0.2s ease' }}
           {...props}
         />
         {enableAudioRecording && (
