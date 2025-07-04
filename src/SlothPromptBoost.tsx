@@ -117,18 +117,26 @@ const ResultsView = ({
   setPreliminaryRound,
   setPreliminaryScore,
   savedPromptId,
+  setSavedPromptId,
   user,
   handleSavePrompt,
   handleContinueImprovement,
   currentIteration,
+  setCurrentIteration,
   improvedVersions,
+  setImprovedVersions,
   versionHistory,
   setVersionHistory,
   isSaving,
   showSaveSuccess,
   setShowSaveSuccess,
   showCopySuccess,
-  setShowCopySuccess
+  setShowCopySuccess,
+  setAnalysisResult,
+  setUserAnswers,
+  setIterativeAnswers,
+  setCurrentIterationAnswers,
+  setShowingQuestions
 }: any) => {
   const [loadingVersions, setLoadingVersions] = useState(false);
   const [isVersionHistoryExpanded, setIsVersionHistoryExpanded] = useState(false);
@@ -318,6 +326,7 @@ const ResultsView = ({
           <div className="bg-white rounded-3xl shadow-xl mt-6 p-6">
             <button 
               onClick={() => {
+                // Clear all state before redirecting to home
                 setUserPrompt('');
                 setCurrentRound(1);
                 setRoundQuestions([]);
@@ -326,6 +335,22 @@ const ResultsView = ({
                 setPreliminaryPrompt('');
                 setPreliminaryRound(1);
                 setPreliminaryScore({laziness: 0, quality: 0});
+                setGeneratedPrompt('');
+                setVersionHistory([]);
+                setShowSaveSuccess(false);
+                setShowCopySuccess(false);
+                
+                // Clear saved prompt and iterative improvement state
+                setSavedPromptId(null);
+                setAnalysisResult(null);
+                setUserAnswers({});
+                setImprovedVersions([]);
+                setCurrentIteration(0);
+                setIterativeAnswers([]);
+                setCurrentIterationAnswers({});
+                setShowingQuestions(true);
+                
+                // Redirect to home
                 setCurrentView('home');
               }}
               className="w-full bg-gradient-to-r from-green-500 to-blue-600 text-white py-3 px-6 rounded-xl hover:from-green-600 hover:to-blue-700 transition-all font-medium shadow-md"
@@ -1879,11 +1904,14 @@ Laziness Score: ${preliminaryScore.laziness}/10 | Quality: ${preliminaryScore.qu
           setPreliminaryRound={setPreliminaryRound}
           setPreliminaryScore={setPreliminaryScore}
           savedPromptId={savedPromptId}
+          setSavedPromptId={setSavedPromptId}
           user={user}
           handleSavePrompt={handleSavePrompt}
           handleContinueImprovement={handleContinueImprovement}
           currentIteration={currentIteration}
+          setCurrentIteration={setCurrentIteration}
           improvedVersions={improvedVersions}
+          setImprovedVersions={setImprovedVersions}
           versionHistory={versionHistory}
           setVersionHistory={setVersionHistory}
           isSaving={isSaving}
@@ -1891,6 +1919,11 @@ Laziness Score: ${preliminaryScore.laziness}/10 | Quality: ${preliminaryScore.qu
           setShowSaveSuccess={setShowSaveSuccess}
           showCopySuccess={showCopySuccess}
           setShowCopySuccess={setShowCopySuccess}
+          setAnalysisResult={setAnalysisResult}
+          setUserAnswers={setUserAnswers}
+          setIterativeAnswers={setIterativeAnswers}
+          setCurrentIterationAnswers={setCurrentIterationAnswers}
+          setShowingQuestions={setShowingQuestions}
         />
       )}
       {currentView === 'three-round' && (
