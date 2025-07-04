@@ -32,14 +32,14 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-100 via-pink-50 to-indigo-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-forest-gradient flex items-center justify-center p-4 relative forest-sparkles">
       <div className="w-full max-w-md">
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+        <div className="bg-white rounded-2xl shadow-xl p-8 animate-magical-glow border-2 border-wizard-forest-mist relative z-10">
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
+            <h1 className="text-4xl font-bold bg-emerald-magic bg-clip-text text-transparent mb-2">
               Prompt Wizard III
             </h1>
-            <p className="text-gray-600">Where wisdom meets your creative prompts</p>
+            <p className="text-gray-600">🧙‍♂️ Where forest magic meets your creative prompts 🌲</p>
           </div>
 
           {!emailSent ? (
@@ -55,7 +55,7 @@ export default function LoginPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="your@email.com"
                   required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wizard-primary focus:border-transparent outline-none transition"
                   disabled={loading}
                 />
               </div>
@@ -69,23 +69,23 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading || !email}
-                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 px-6 rounded-lg font-medium hover:from-purple-700 hover:to-pink-700 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                className="w-full bg-emerald-magic text-white py-3 px-6 rounded-lg font-medium hover:bg-wizard-primary-dark transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
               >
                 {loading ? (
                   <>
                     <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                    Sending magic link...
+                    🧙‍♂️ Casting magic link...
                   </>
                 ) : (
-                  'Get Magic Link'
+                  '🌟 Get Magic Link'
                 )}
               </button>
             </form>
           ) : (
             <div className="text-center space-y-4">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+              <div className="w-16 h-16 bg-wizard-forest-mist rounded-full flex items-center justify-center mx-auto">
                 <svg
-                  className="w-8 h-8 text-green-600"
+                  className="w-8 h-8 text-wizard-primary"
                   fill="none"
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -96,7 +96,7 @@ export default function LoginPage() {
                   <path d="M5 13l4 4L19 7"></path>
                 </svg>
               </div>
-              <h2 className="text-2xl font-semibold text-gray-800">Check your email!</h2>
+              <h2 className="text-2xl font-semibold text-wizard-enchanted-shadow">🌟 Check your email!</h2>
               <p className="text-gray-600">
                 We sent a magic link to <span className="font-medium">{email}</span>
               </p>
@@ -108,7 +108,7 @@ export default function LoginPage() {
                   setEmailSent(false)
                   setEmail('')
                 }}
-                className="text-purple-600 hover:text-purple-700 font-medium"
+                className="text-wizard-primary hover:text-wizard-primary-dark font-medium"
               >
                 Try a different email
               </button>
@@ -118,7 +118,7 @@ export default function LoginPage() {
 
         <div className="text-center mt-6 text-sm text-gray-600">
           <p>
-            By signing in, you agree to use this tool for magical prompt generation only.
+            By signing in, you agree to use this tool for enchanted forest magic only. 🧙‍♂️🌲
           </p>
         </div>
       </div>
