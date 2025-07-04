@@ -293,7 +293,7 @@ export default function PromptHistory({ onBack, onLoadPrompt }: PromptHistoryPro
                         onClick={() => onLoadPrompt(prompt)}
                         className="flex items-center bg-emerald-magic text-white px-4 py-2 rounded-lg font-medium hover:bg-wizard-primary-dark transition group-hover:shadow-md"
                       >
-🌿 📖 Load Prompt
+📖 Load Prompt
                       </button>
                     </div>
                   </div>
