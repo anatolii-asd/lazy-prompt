@@ -52,6 +52,7 @@ export const AudioTextarea = forwardRef<HTMLTextAreaElement, AudioTextareaProps>
             currentText={value}
             className={audioRecorderClassName}
             isDisabled={disabled}
+            onRecordingStateChange={setIsRecording}
           />
         )}
       </div>
