@@ -34,7 +34,7 @@ export const AudioTextarea = forwardRef<HTMLTextAreaElement, AudioTextareaProps>
     };
 
     return (
-      <div className="relative overflow-hidden">
+      <div className="relative overflow-hidden rounded-2xl">
         <textarea
           ref={ref}
           value={value}
