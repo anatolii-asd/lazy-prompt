@@ -3,6 +3,7 @@ import { useAuth } from './contexts/AuthContext';
 import { promptService, PromptWithVersions, EnhancePromptRequest, RoundQuestion, AnalyzePromptResponse } from './lib/promptService';
 import ProfileDropdown from './components/ProfileDropdown';
 import PromptHistory from './components/PromptHistory';
+import { translate } from './lib/translations';
 
 // Imported View Components
 import HomeView from './components/views/HomeView';
@@ -11,22 +12,29 @@ import ThreeRoundView from './components/views/ThreeRoundView';
 import PreliminaryResultView from './components/views/PreliminaryResultView';
 import IterativeFlowView from './components/views/IterativeFlowView';
 
-const wizardQuotes = [
-  "Why struggle when magic can guide your way? 🧙‍♂️",
-  "Every great prompt begins with a wise question! ✨",
-  "Let my wisdom transform your thoughts into power! 🔮",
-  "I shall conjure the perfect words for you! 📜",
-  "Ancient knowledge meets modern brilliance! 🌟"
-];
+const getWizardQuotes = (language: string) => {
+  const quotes = translate(language, 'wizard.quotes');
+  if (Array.isArray(quotes)) {
+    return quotes;
+  }
+  // Fallback quotes
+  return [
+    "Why struggle when magic can guide your way? 🧙‍♂️",
+    "Every great prompt begins with a wise question! ✨",
+    "Let my wisdom transform your thoughts into power! 🔮",
+    "I shall conjure the perfect words for you! 📜",
+    "Ancient knowledge meets modern brilliance! 🌟"
+  ];
+};
 
 // Header component for the app
-const Header = ({ promptCount, onShowHistory }: { promptCount: number; onShowHistory: () => void }) => (
+const Header = ({ promptCount, onShowHistory, language }: { promptCount: number; onShowHistory: () => void; language: string }) => (
   <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200 px-4 py-3 sticky top-0 z-40">
     <div className="max-w-4xl mx-auto flex justify-between items-center">
       <div className="flex items-center space-x-2">
         <span className="text-2xl">🧙‍♂️</span>
         <h1 className="text-xl font-bold bg-emerald-magic bg-clip-text text-transparent">
-          Prompt Wizard III
+          {translate(language, 'wizard.title')}
         </h1>
       </div>
       <ProfileDropdown promptCount={promptCount} onShowHistory={onShowHistory} />
@@ -35,12 +43,12 @@ const Header = ({ promptCount, onShowHistory }: { promptCount: number; onShowHis
 );
 
 const SlothPromptBoost = () => {
-  const { user } = useAuth();
+  const { user, language } = useAuth();
   const [currentView, setCurrentView] = useState('home');
   const [userPrompt, setUserPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedPrompt, setGeneratedPrompt] = useState('');
-  const [wizardMessage, setWizardMessage] = useState("Let us weave magic into your words! 🧙‍♂️🌲");
+  const [wizardMessage, setWizardMessage] = useState("");
   const [promptCount, setPromptCount] = useState(0);
   const [savedPromptId, setSavedPromptId] = useState<string | null>(null);
   const [versionHistory, setVersionHistory] = useState<any[]>([]);
@@ -77,6 +85,13 @@ const SlothPromptBoost = () => {
     }
   }, [user]);
 
+  // Update wizard message when language changes
+  useEffect(() => {
+    const quotes = getWizardQuotes(language);
+    const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+    setWizardMessage(randomQuote);
+  }, [language]);
+
   // Auto-focus the textarea when the component mounts
   useEffect(() => {
     if (currentView === 'home') {
@@ -91,10 +106,11 @@ const SlothPromptBoost = () => {
     }
   }, [currentView, user, generatedPrompt, savedPromptId]);
 
-  // Memoize the random quote to prevent re-renders
+  // Memoize the random quote to prevent re-renders, but update when language changes
   const randomQuote = useMemo(() => {
-    return wizardQuotes[Math.floor(Math.random() * wizardQuotes.length)];
-  }, []); // Empty dependency array means it's calculated once
+    const quotes = getWizardQuotes(language);
+    return quotes[Math.floor(Math.random() * quotes.length)];
+  }, [language]); // Recalculate when language changes
 
   const loadPromptCount = async () => {
     if (!user) return;
@@ -213,7 +229,8 @@ const SlothPromptBoost = () => {
       
       const request = {
         prompt_to_improve: userPrompt,
-        questions_and_answers: questionsAndAnswers
+        questions_and_answers: questionsAndAnswers,
+        language
       };
 
       const { data, error } = await promptService.improvePrompt(request);
@@ -228,7 +245,7 @@ const SlothPromptBoost = () => {
         setIterativeAnswers(prev => [...prev, answersToUse]);
         setCurrentIterationAnswers({}); // Reset for next iteration
         setGeneratedPrompt(data.improved_prompt); // Set the improved prompt as generated
-        setWizardMessage("Your prompt has been improved! ✨");
+        setWizardMessage(translate(language, 'prompt.promptImproved'));
         
         // Auto-save the improved prompt to database
         if (user) {
@@ -302,7 +319,7 @@ const SlothPromptBoost = () => {
       }
       
       // Analyze the current improved prompt to get new questions
-      const { data, error } = await promptService.analyzePrompt({ prompt: currentPrompt });
+      const { data, error } = await promptService.analyzePrompt({ prompt: currentPrompt, language });
       
       if (error) {
         throw new Error(error.message || 'Failed to analyze improved prompt');
@@ -313,7 +330,7 @@ const SlothPromptBoost = () => {
         setShowingQuestions(true);
         setCurrentIterationAnswers({});
         setCurrentView('iterative'); // Switch back to iterative view
-        setWizardMessage(`Iteration ${currentIteration + 1}: Answer new questions based on your improved prompt! 📝`);
+        setWizardMessage(`${translate(language, 'prompt.iteration')} ${currentIteration + 1}: ${translate(language, 'prompt.answerNewQuestions')}`);
         setIsImproving(false);
       } else {
         throw new Error('No analysis data received for improved prompt');
@@ -345,7 +362,7 @@ const SlothPromptBoost = () => {
     setCurrentIterationAnswers({});
     
     try {
-      const { data, error } = await promptService.analyzePrompt({ prompt: userPrompt });
+      const { data, error } = await promptService.analyzePrompt({ prompt: userPrompt, language });
       
       if (error) {
         throw new Error(error.message || 'Failed to analyze prompt');
@@ -470,7 +487,8 @@ Laziness Score: ${preliminaryScore.laziness}/10 | Quality: ${preliminaryScore.qu
       {currentView !== 'history' && (
         <Header 
           promptCount={promptCount} 
-          onShowHistory={() => setCurrentView('history')} 
+          onShowHistory={() => setCurrentView('history')}
+          language={language}
         />
       )}
 
@@ -482,6 +500,7 @@ Laziness Score: ${preliminaryScore.laziness}/10 | Quality: ${preliminaryScore.qu
           isGenerating={isGenerating}
           promptTextareaRef={promptTextareaRef}
           randomQuote={randomQuote}
+          language={language}
         />
       )}
       {currentView === 'results' && (
@@ -521,6 +540,7 @@ Laziness Score: ${preliminaryScore.laziness}/10 | Quality: ${preliminaryScore.qu
           setIterativeAnswers={setIterativeAnswers}
           setCurrentIterationAnswers={setCurrentIterationAnswers}
           setShowingQuestions={setShowingQuestions}
+          language={language}
         />
       )}
       {currentView === 'three-round' && (
@@ -567,6 +587,7 @@ Laziness Score: ${preliminaryScore.laziness}/10 | Quality: ${preliminaryScore.qu
           setGeneratedPrompt={setGeneratedPrompt}
           showingQuestions={showingQuestions}
           currentIterationAnswers={currentIterationAnswers}
+          language={language}
         />
       )}
       {currentView === 'history' && (

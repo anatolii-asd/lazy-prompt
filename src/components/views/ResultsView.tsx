@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Copy } from 'lucide-react';
 import { ResultsViewProps } from '../types';
 import { promptService } from '../../lib/promptService';
+import { translate } from '../../lib/translations';
 
 const ResultsView: React.FC<ResultsViewProps> = ({
   generatedPrompt,
@@ -39,7 +40,8 @@ const ResultsView: React.FC<ResultsViewProps> = ({
   setUserAnswers,
   setIterativeAnswers,
   setCurrentIterationAnswers,
-  setShowingQuestions
+  setShowingQuestions,
+  language
 }) => {
   const [loadingVersions, setLoadingVersions] = useState(false);
   const [isVersionHistoryExpanded, setIsVersionHistoryExpanded] = useState(false);
@@ -113,9 +115,9 @@ const ResultsView: React.FC<ResultsViewProps> = ({
       </button>
 
       <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-wizard-enchanted-shadow mb-2">🧙‍♂️ Behold! 🎉</h2>
-        <p className="text-xl text-gray-600">Your prompt has been enchanted with wisdom!</p>
-        <p className="text-lg text-gray-500 mt-2">Iteration {iterationNumber}</p>
+        <h2 className="text-3xl font-bold text-wizard-enchanted-shadow mb-2">{translate(language, 'prompt.behold')}</h2>
+        <p className="text-xl text-gray-600">{translate(language, 'prompt.promptEnchanted')}</p>
+        <p className="text-lg text-gray-500 mt-2">{translate(language, 'prompt.iteration')} {iterationNumber}</p>
       </div>
 
       {/* Wizard Celebration */}
@@ -125,7 +127,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
         <div className="text-center">
           <p className="text-lg text-gray-700 mb-2">{wizardMessage}</p>
           <p className="text-sm text-gray-500 italic">
-            "Witness the transformation of ordinary words into extraordinary magic! 🧙‍♂️✨"
+            "{translate(language, 'prompt.witnessTransformation')}"
           </p>
         </div>
       </div>
@@ -134,7 +136,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
         {/* Enhanced Prompt */}
         <div className="bg-white rounded-3xl shadow-xl p-8 border-2 border-wizard-forest-mist animate-magical-glow relative z-10">
           <h3 className="text-2xl font-bold text-wizard-enchanted-shadow mb-6 flex items-center justify-center">
-            🔮Your Enchanted Prompt💫
+            {translate(language, 'prompt.enchantedPrompt')}
           </h3>
           
           {/* Editable prompt area */}
@@ -145,7 +147,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
               setShowSaveSuccess(false);
             }}
             className="w-full h-40 p-4 border-2 border-gray-200 rounded-2xl resize-none focus:border-wizard-primary focus:ring-4 focus:ring-wizard-forest-mist outline-none transition-all text-gray-700 placeholder-gray-400 mb-4"
-            placeholder="Your magical prompt will appear here..."
+            placeholder={translate(language, 'prompt.magicalPromptPlaceholder')}
           />
           
           {/* Copy and Save buttons */}
@@ -169,12 +171,12 @@ const ResultsView: React.FC<ResultsViewProps> = ({
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                       </svg>
-                      <span>✅ Copied!</span>
+                      <span>{translate(language, 'prompt.copied')}</span>
                     </>
                   ) : (
                     <>
                       <Copy className="w-4 h-4" />
-                      <span>Copy</span>
+                      <span>{translate(language, 'prompt.copy')}</span>
                     </>
                   )}
                 </button>
@@ -188,7 +190,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
                   }`}
                 >
                   <span>
-                    {isSaving ? 'Saving...' : showSaveSuccess ? '✨ Saved!' : 'Save'}
+                    {isSaving ? translate(language, 'prompt.saving') : showSaveSuccess ? translate(language, 'prompt.saved') : translate(language, 'prompt.save')}
                   </span>
                 </button>
               </div>
@@ -202,16 +204,16 @@ const ResultsView: React.FC<ResultsViewProps> = ({
               className="w-full bg-emerald-magic text-white text-base sm:text-xl font-bold py-3 sm:py-4 px-6 sm:px-12 rounded-2xl hover:bg-wizard-primary-dark transition-all shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {currentIteration >= 5 ? (
-                'Maximum Iterations Reached'
+                translate(language, 'prompt.maximumIterationsReached')
               ) : isImproving ? (
                 <div className="flex items-center justify-center">
                   <div className="animate-spin mr-3">🧙‍♂️</div>
-                  Improving...
+                  {translate(language, 'prompt.improving')}
                 </div>
               ) : (
                 <div className="flex items-center justify-center">
                   <div className="mr-2 sm:mr-3 text-xl sm:text-2xl">🧙‍♂️</div>
-                  Improve Further ✨
+                  {translate(language, 'prompt.improveFurther')}
                 </div>
               )}
             </button>
@@ -250,7 +252,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
               }}
               className="w-full bg-white text-wizard-primary text-base sm:text-xl font-bold py-3 sm:py-4 px-6 sm:px-12 rounded-2xl hover:bg-wizard-forest-mist transition-all shadow-xl border-2 border-wizard-primary"
             >
-              🌱 Start Over 🌲
+              {translate(language, 'prompt.startOver')}
             </button>
           </div>
 
@@ -263,9 +265,9 @@ const ResultsView: React.FC<ResultsViewProps> = ({
               >
                 <h4 className="text-xl font-bold text-gray-800 flex items-center justify-between">
                   <div className="flex items-center">
-                    📜 Version History 
+                    {translate(language, 'prompt.versionHistory')} 
                     <span className="ml-2 text-sm bg-wizard-forest-mist text-wizard-primary-dark px-2 py-1 rounded-full">
-                      {versionHistory.length} versions
+                      {versionHistory.length} {translate(language, 'prompt.versions')}
                     </span>
                   </div>
                   <div className={`transform transition-transform ${isVersionHistoryExpanded ? 'rotate-180' : ''}`}>
@@ -289,7 +291,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
                   {loadingVersions ? (
                     <div className="text-center py-4">
                       <div className="animate-spin w-6 h-6 border-2 border-wizard-primary border-t-transparent rounded-full mx-auto mb-2"></div>
-                      <p className="text-gray-600">Loading versions...</p>
+                      <p className="text-gray-600">{translate(language, 'prompt.loadingVersions')}</p>
                     </div>
                   ) : (
                     <div className="space-y-2 mt-4">
@@ -302,11 +304,11 @@ const ResultsView: React.FC<ResultsViewProps> = ({
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             <span className="text-gray-700 font-medium">
-                              Version {version.version}
+                              {translate(language, 'prompt.version')} {version.version}
                             </span>
                             {version.version === Math.max(...versionHistory.map(v => v.version)) && (
                               <span className="bg-wizard-forest-mist text-wizard-primary-dark px-2 py-1 rounded-full text-xs font-medium">
-                                Current
+                                {translate(language, 'prompt.current')}
                               </span>
                             )}
                           </div>
@@ -331,7 +333,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
                             className="overflow-hidden border-t border-wizard-forest-mist"
                           >
                             <div className="p-4 bg-gray-50">
-                              <h5 className="text-sm font-medium text-gray-700 mb-2">Generated Prompt:</h5>
+                              <h5 className="text-sm font-medium text-gray-700 mb-2">{translate(language, 'prompt.generatedPrompt')}</h5>
                               <p className="text-sm text-gray-600 bg-white rounded-lg p-3 border border-gray-200">
                                 {version.generated_prompt}
                               </p>

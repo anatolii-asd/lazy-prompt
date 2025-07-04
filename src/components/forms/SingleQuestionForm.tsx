@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { SingleQuestionFormProps } from '../types';
+import { translate } from '../../lib/translations';
 
 const SingleQuestionForm: React.FC<SingleQuestionFormProps> = ({
   question,
@@ -11,7 +12,8 @@ const SingleQuestionForm: React.FC<SingleQuestionFormProps> = ({
   onAnswerChange,
   onConfirm,
   onSkip,
-  isSubmitting
+  isSubmitting,
+  language
 }) => {
   const [localAnswer, setLocalAnswer] = useState(answer || '');
   const [showCustomInput, setShowCustomInput] = useState(false);
@@ -76,7 +78,7 @@ const SingleQuestionForm: React.FC<SingleQuestionFormProps> = ({
         {/* Progress indicator */}
         <div className="flex items-center justify-between mb-4">
           <div className="text-sm text-gray-500">
-            Question {questionNumber} of {totalQuestions}
+            {translate(language, 'prompt.question')} {questionNumber} {translate(language, 'prompt.of')} {totalQuestions}
           </div>
           <div className="flex space-x-1">
             {Array.from({ length: totalQuestions }, (_, i) => (
@@ -98,7 +100,7 @@ const SingleQuestionForm: React.FC<SingleQuestionFormProps> = ({
             value={localAnswer}
             onChange={(e) => handleLocalChange(e.target.value)}
             className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wizard-primary-500 focus:border-transparent resize-y min-h-[120px] text-gray-700"
-            placeholder="Enter your answer..."
+            placeholder={translate(language, 'prompt.enterAnswer')}
           />
         )}
         
@@ -108,7 +110,7 @@ const SingleQuestionForm: React.FC<SingleQuestionFormProps> = ({
             value={localAnswer}
             onChange={(e) => handleLocalChange(e.target.value)}
             className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wizard-primary-500 focus:border-transparent text-gray-700"
-            placeholder="Enter your answer..."
+            placeholder={translate(language, 'prompt.enterAnswer')}
           />
         )}
         
@@ -147,7 +149,7 @@ const SingleQuestionForm: React.FC<SingleQuestionFormProps> = ({
                 onChange={(e) => handleLocalChange(e.target.value)}
                 className="text-wizard-primary-600 focus:ring-wizard-primary-500"
               />
-              <span className="text-gray-700">✨ Custom answer</span>
+              <span className="text-gray-700">{translate(language, 'prompt.customAnswer')}</span>
             </label>
             
             {/* Custom input field */}
@@ -157,7 +159,7 @@ const SingleQuestionForm: React.FC<SingleQuestionFormProps> = ({
                   type="text"
                   value={customValue}
                   onChange={(e) => handleCustomInputChange(e.target.value)}
-                  placeholder="Enter your custom answer..."
+                  placeholder={translate(language, 'prompt.enterCustomAnswer')}
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wizard-primary-500 focus:border-transparent text-gray-700"
                   autoFocus
                 />
@@ -173,7 +175,7 @@ const SingleQuestionForm: React.FC<SingleQuestionFormProps> = ({
             disabled={isSubmitting}
             className="flex-1 bg-gray-200 text-gray-700 py-3 px-6 rounded-lg font-medium hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
           >
-            Skip Question
+            {translate(language, 'prompt.skipQuestion')}
           </button>
           <button
             onClick={handleConfirm}
@@ -183,10 +185,10 @@ const SingleQuestionForm: React.FC<SingleQuestionFormProps> = ({
             {isSubmitting ? (
               <div className="flex items-center justify-center space-x-2">
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                <span>Processing...</span>
+                <span>{translate(language, 'prompt.processing')}</span>
               </div>
             ) : (
-              'Confirm Answer'
+              translate(language, 'prompt.confirmAnswer')
             )}
           </button>
         </div>

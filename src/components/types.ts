@@ -7,6 +7,7 @@ export interface HomeViewProps {
   isGenerating: boolean;
   promptTextareaRef: React.RefObject<HTMLTextAreaElement>;
   randomQuote: string;
+  language: string;
 }
 
 export interface ResultsViewProps {
@@ -45,6 +46,7 @@ export interface ResultsViewProps {
   setIterativeAnswers: (answers: Record<string, any>[]) => void;
   setCurrentIterationAnswers: (answers: Record<string, any>) => void;
   setShowingQuestions: (showing: boolean) => void;
+  language: string;
 }
 
 export interface PreliminaryResultViewProps {
@@ -88,6 +90,7 @@ export interface SingleQuestionFormProps {
   onConfirm: () => void;
   onSkip: () => void;
   isSubmitting: boolean;
+  language: string;
 }
 
 export interface DynamicQuestionFormProps {
@@ -96,6 +99,7 @@ export interface DynamicQuestionFormProps {
   onAnswerChange: (questionKey: string, answer: any) => void;
   onSubmit: () => void;
   isSubmitting: boolean;
+  language: string;
 }
 
 export interface IterativeFlowViewProps {
@@ -113,4 +117,5 @@ export interface IterativeFlowViewProps {
   setGeneratedPrompt: (prompt: string) => void;
   showingQuestions: boolean;
   currentIterationAnswers: Record<string, any>;
+  language: string;
 }
